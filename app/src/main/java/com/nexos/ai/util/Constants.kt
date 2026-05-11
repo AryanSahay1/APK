@@ -10,11 +10,13 @@ object Constants {
     // Notification channels
     const val CHANNEL_SERVICE = "nexos_service"
     const val CHANNEL_NOTES = "nexos_notes"
+    const val CHANNEL_ALARMS = "nexos_alarms"
 
     // Notification ids
     const val NOTIF_FLOATING = 1001
     const val NOTIF_SCREENSHOT = 1002
     const val NOTIF_NOTE_SAVED_BASE = 2000
+    const val NOTIF_ALARM_BASE = 3000
 
     // Broadcast actions (routed to NexosReceiver)
     const val ACTION_CAPTURE_SCREENSHOT = "$PACKAGE.ACTION_CAPTURE_SCREENSHOT"
@@ -36,6 +38,7 @@ object Constants {
     const val SOURCE_VOICE = "voice"
     const val SOURCE_MANUAL = "manual"
     const val SOURCE_SHARED_TEXT = "shared"
+    const val SOURCE_NEWS = "news"
 
     // Provider keys
     const val PROVIDER_NONE = "none"
@@ -43,6 +46,9 @@ object Constants {
     const val PROVIDER_GEMINI = "gemini"
     const val PROVIDER_ANTHROPIC = "anthropic"
     const val PROVIDER_GROQ = "groq"
+
+    // Non-AI integrations (their keys live in the same SecureStorage)
+    const val PROVIDER_NEWS_API = "newsapi"
 
     // Misc
     const val AI_REQUEST_TIMEOUT_MS = 30_000L

@@ -48,8 +48,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun refreshKeyStatuses(): Map<String, Boolean> =
-        aiRouter.availableProviders().associate { p -> p.key to !secureStorage.getApiKey(p.key).isNullOrBlank() }
+    private fun refreshKeyStatuses(): Map<String, Boolean> {
+        val aiStatuses = aiRouter.availableProviders()
+            .associate { p -> p.key to !secureStorage.getApiKey(p.key).isNullOrBlank() }
+        val newsStatus = mapOf(
+            Constants.PROVIDER_NEWS_API to !secureStorage.getApiKey(Constants.PROVIDER_NEWS_API).isNullOrBlank()
+        )
+        return aiStatuses + newsStatus
+    }
 
     fun selectProvider(key: String) {
         viewModelScope.launch {

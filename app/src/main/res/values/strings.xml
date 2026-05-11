@@ -6,6 +6,8 @@
     <string name="channel_service_desc">Required for the floating button and screen capture to run.</string>
     <string name="channel_notes_name">Note Activity</string>
     <string name="channel_notes_desc">Notifies you when a note is saved.</string>
+    <string name="channel_alarms_name">Alarms &amp; Reminders</string>
+    <string name="channel_alarms_desc">Rings your scheduled reminders.</string>
 
     <!-- Foreground notification copy -->
     <string name="fg_title">NexOS is active</string>

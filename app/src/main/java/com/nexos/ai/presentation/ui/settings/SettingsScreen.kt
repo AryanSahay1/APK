@@ -22,7 +22,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -167,6 +166,23 @@ fun SettingsScreen(
                 }
             )
 
+            SectionTitle("News (NewsAPI)")
+            Text(
+                "Get a free key at https://newsapi.org (100 requests/day, developer tier). " +
+                    "Stored encrypted on this device — never logged or transmitted to NexOS.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            NewsApiKeyCard(
+                hasKey = state.keyStatuses["newsapi"] == true,
+                draftKey = keyDrafts["newsapi"].orEmpty(),
+                onKeyChange = { keyDrafts["newsapi"] = it },
+                onKeySave = {
+                    viewModel.setApiKey("newsapi", keyDrafts["newsapi"].orEmpty())
+                    keyDrafts["newsapi"] = ""
+                }
+            )
+
             SectionTitle("Storage")
             TextButton(onClick = { viewModel.clearImageCache() }) {
                 Text("Clear image cache")
@@ -274,6 +290,51 @@ private fun ProviderCard(
                 TextButton(onClick = onKeySave, enabled = draftKey.isNotBlank()) {
                     Text(if (hasKey) "Replace" else "Save")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NewsApiKeyCard(
+    hasKey: Boolean,
+    draftKey: String,
+    onKeyChange: (String) -> Unit,
+    onKeySave: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(width = 1.dp, color = NexosBorder, shape = RoundedCornerShape(16.dp))
+            .padding(16.dp)
+    ) {
+        OutlinedTextField(
+            value = draftKey,
+            onValueChange = onKeyChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(if (hasKey) "Key stored — replace to update" else "Paste NewsAPI key") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            shape = RoundedCornerShape(10.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = NexosBackground,
+                unfocusedContainerColor = NexosBackground,
+                focusedIndicatorColor = NexosPrimary,
+                unfocusedIndicatorColor = NexosBorder
+            )
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                if (hasKey) "Key stored securely." else "No key stored yet.",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (hasKey) NexosPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = onKeySave, enabled = draftKey.isNotBlank()) {
+                Text(if (hasKey) "Replace" else "Save")
             }
         }
     }

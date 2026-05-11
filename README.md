@@ -1,7 +1,10 @@
 # NexOS — Android AI Orchestration Layer
 
-> An on-device AI execution layer for Android. Capture, transcribe, summarize — all
-> without a subscription, all without your data leaving the device.
+> An on-device AI execution layer for Android. Capture, transcribe, summarize, schedule,
+> read the news, and book a ride — all from one app, all without a subscription,
+> all without your data leaving the device.
+
+**Licensed under [Apache 2.0](LICENSE). Free, forever. See [UPDATES_POLICY.md](UPDATES_POLICY.md) and [PRIVACY.md](PRIVACY.md).**
 
 NexOS is not a chatbot wrapper. It's a system that sits between the user and every
 other app on their phone: a floating button captures the screen, ML Kit extracts the
@@ -79,6 +82,23 @@ Supported providers:
 
 All permissions are requested at the point of use, with rationale.
 
+## Phase 4 — Super-app features
+
+The Hub tab brings the rest of the device under one roof. All integrations are free; deep
+links use only the public URI schemes each target app publishes.
+
+| Feature | Trigger | Underlying tech | Cost |
+|---|---|---|---|
+| News feed (categorised, searchable, save-as-note with AI summary) | News tab | NewsAPI (you supply free dev key) + ML Kit + your AI provider | Free tier — 100 req/day |
+| Alarms & reminders ("remind me at 8am tomorrow") | Hub → Alarms | Local NLP parser + `AlarmManager.setExactAndAllowWhileIdle` + `BootReceiver` | Free, fully on-device |
+| Uber ride | Hub → Uber | `uber://?action=setPickup…` deep link | Free |
+| Rapido ride | Hub → Rapido | `rapido://book?destination=…` deep link | Free |
+| Zomato food | Hub → Zomato | `zomato://search?query=…` deep link | Free |
+| Swiggy food | Hub → Swiggy | `swiggy://search?query=…` deep link | Free |
+
+Every deep link gracefully degrades: if the target app is not installed, NexOS opens the
+provider's HTTPS site, then falls back to the Play Store listing.
+
 ## Repo layout
 
 ```
@@ -99,4 +119,8 @@ app/src/main/java/com/nexos/ai/
 
 ## License
 
-Source-available for evaluation. No commercial license granted by this repository.
+[Apache License 2.0](LICENSE). You may use, modify, and redistribute the source and the APK,
+including for commercial purposes, subject to the conditions of the licence. Trademarks for
+Uber, Rapido, Zomato, Swiggy, OpenAI, Anthropic, Gemini, and Groq belong to their respective
+owners — see [NOTICE](NOTICE). Privacy stance: [PRIVACY.md](PRIVACY.md). Update policy:
+[UPDATES_POLICY.md](UPDATES_POLICY.md).

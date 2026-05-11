@@ -45,6 +45,17 @@ class NexosApp : Application() {
             setShowBadge(true)
         }
 
-        nm.createNotificationChannels(listOf(service, notes))
+        val alarms = NotificationChannel(
+            Constants.CHANNEL_ALARMS,
+            getString(R.string.channel_alarms_name),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = getString(R.string.channel_alarms_desc)
+            setShowBadge(true)
+            enableLights(true)
+            enableVibration(true)
+        }
+
+        nm.createNotificationChannels(listOf(service, notes, alarms))
     }
 }

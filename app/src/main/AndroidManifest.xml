@@ -31,10 +31,46 @@
     <!-- Battery whitelist request -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Alarms / reminders -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <queries>
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <!-- Required so PackageManager.resolveActivity can find deep-link targets on API 30+ -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="uber" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="rapido" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="zomato" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="swiggy" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <package android:name="com.ubercab" />
+        <package android:name="com.rapido.passenger" />
+        <package android:name="com.application.zomato" />
+        <package android:name="in.swiggy.android" />
+        <package android:name="com.google.android.apps.maps" />
     </queries>
 
     <application
@@ -93,6 +129,27 @@
                 <action android:name="com.nexos.ai.ACTION_CAPTURE_SCREENSHOT" />
                 <action android:name="com.nexos.ai.ACTION_START_VOICE" />
                 <action android:name="com.nexos.ai.ACTION_OPEN_APP" />
+            </intent-filter>
+        </receiver>
+
+        <!-- AlarmManager broadcast: fires scheduled reminders -->
+        <receiver
+            android:name=".service.AlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.nexos.ai.ACTION_ALARM_FIRE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Re-arm pending alarms after reboot or self-update -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

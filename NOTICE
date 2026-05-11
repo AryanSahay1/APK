@@ -1,0 +1,20 @@
+NexOS
+Copyright 2025 NexOS contributors
+
+This product includes software developed at the following projects:
+
+- Jetpack Compose (Apache License 2.0) — https://developer.android.com/jetpack/compose
+- Hilt / Dagger (Apache License 2.0) — https://dagger.dev/hilt/
+- Room (Apache License 2.0) — https://developer.android.com/training/data-storage/room
+- Kotlin Coroutines (Apache License 2.0) — https://github.com/Kotlin/kotlinx.coroutines
+- OkHttp (Apache License 2.0) — https://square.github.io/okhttp/
+- Retrofit (Apache License 2.0) — https://square.github.io/retrofit/
+- Gson (Apache License 2.0) — https://github.com/google/gson
+- Material Components for Android (Apache License 2.0) — https://github.com/material-components/material-components-android
+- Google ML Kit Text Recognition (Apache License 2.0) — https://developers.google.com/ml-kit
+- Truth (Apache License 2.0) — https://github.com/google/truth
+- AndroidX Security Crypto (Apache License 2.0) — https://developer.android.com/jetpack/androidx/releases/security
+
+News headlines are sourced from https://newsapi.org under their developer terms when a NewsAPI key is configured by the user.
+
+Uber, Rapido, Zomato, and Swiggy are trademarks of their respective owners. NexOS uses only their publicly documented deep-link URI schemes and is not affiliated with any of them.

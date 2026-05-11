@@ -3,6 +3,7 @@ package com.nexos.ai.di
 import android.content.Context
 import androidx.room.Room
 import com.nexos.ai.data.local.NexosDatabase
+import com.nexos.ai.data.local.dao.AlarmDao
 import com.nexos.ai.data.local.dao.NoteDao
 import dagger.Module
 import dagger.Provides
@@ -23,9 +24,16 @@ object DatabaseModule {
             NexosDatabase::class.java,
             NexosDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(NexosDatabase.MIGRATION_1_2)
+            // Defensive only: real migrations should be added above. Used as a safety net so
+            // a future schema bump that ships without a migration does not crash existing users
+            // — they lose only the affected new tables, never their notes.
+            .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 
     @Provides
     fun provideNoteDao(database: NexosDatabase): NoteDao = database.noteDao()
+
+    @Provides
+    fun provideAlarmDao(database: NexosDatabase): AlarmDao = database.alarmDao()
 }
