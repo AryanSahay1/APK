@@ -23,7 +23,26 @@ data class Note(
     val timestamp: Long = System.currentTimeMillis(),
     val tags: String = "",
     val isSynced: Boolean = false,
-    val rawImagePath: String = ""
+    val rawImagePath: String = "",
+    /**
+     * JSON-encoded list of [com.nexos.ai.domain.model.NoteAttachment]. Stored as a string
+     * column rather than a separate join table so the Note row is self-contained and
+     * Room v3 → v4 migration is just an ADD COLUMN.
+     */
+    val attachmentsJson: String = "",
+    /**
+     * When true, this Note is the cover of a multi-page notebook the user is building. The
+     * notebook's individual pages are stored as ordinary Notes with this row's `id` in
+     * their [notebookId] field. When the user marks the notebook complete, they design a
+     * cover/back page in [coverDesignJson] and can export the whole thing as a PDF.
+     */
+    val isNotebook: Boolean = false,
+    /** Foreign key to the cover note when this row is a page inside a notebook (0 = none). */
+    val notebookId: Long = 0L,
+    /** JSON-encoded cover + back page design (background, title, motif). */
+    val coverDesignJson: String = "",
+    /** True once the user has marked the notebook 'finished' — locks editing of pages. */
+    val isNotebookCompleted: Boolean = false
 ) {
     val tagList: List<String>
         get() = if (tags.isBlank()) emptyList() else tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }

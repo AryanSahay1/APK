@@ -2,6 +2,7 @@ package com.nexos.ai.presentation.ui.notes
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,7 +21,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -193,6 +200,25 @@ fun NoteDetailScreen(
                     }
                 }
 
+                // Attachments — images, audio (playable), and location pins
+                val attachments = remember(current.attachmentsJson) {
+                    com.nexos.ai.data.local.NoteAttachmentCodec.decode(current.attachmentsJson)
+                }
+                if (attachments.isNotEmpty()) {
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        "Attachments",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    attachments.forEach { att ->
+                        DetailAttachment(att = att)
+                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+
                 Spacer(Modifier.height(48.dp))
             }
         }
@@ -215,3 +241,138 @@ fun NoteDetailScreen(
         )
     }
 }
+
+/**
+ * Renders one of the three NoteAttachment kinds. Extracted from NoteDetailScreen so the
+ * scaffold reads cleanly. Image previews use BitmapFactory through the content resolver —
+ * intentionally no Coil dep, which would add ~1 MB for a feature used at most once per note.
+ */
+@Composable
+private fun DetailAttachment(att: com.nexos.ai.domain.model.NoteAttachment) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    when (att) {
+        is com.nexos.ai.domain.model.NoteAttachment.Image -> {
+            val uri = remember(att.uri) { android.net.Uri.parse(att.uri) }
+            var bitmap by remember { androidx.compose.runtime.mutableStateOf<android.graphics.Bitmap?>(null) }
+            androidx.compose.runtime.LaunchedEffect(att.uri) {
+                bitmap = runCatching {
+                    ctx.contentResolver.openInputStream(uri)?.use {
+                        android.graphics.BitmapFactory.decodeStream(it)
+                    }
+                }.getOrNull()
+            }
+            val bmp = bitmap
+            if (bmp != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = "Attached image",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                )
+            } else {
+                AttachmentPlaceholder("Image — couldn't load preview")
+            }
+        }
+        is com.nexos.ai.domain.model.NoteAttachment.Audio -> {
+            AudioPlayerRow(filePath = att.filePath, durationMs = att.durationMs)
+        }
+        is com.nexos.ai.domain.model.NoteAttachment.Location -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clickable {
+                        com.nexos.ai.util.DeepLinks.launchMapsSearch(
+                            ctx,
+                            "${att.latitude},${att.longitude}"
+                        )
+                    }
+                    .padding(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        androidx.compose.material.icons.Icons.Rounded.LocationOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(att.label, style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface)
+                }
+                Text(
+                    "%.5f, %.5f · tap to open in Maps".format(att.latitude, att.longitude),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttachmentPlaceholder(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun AudioPlayerRow(filePath: String, durationMs: Long) {
+    var isPlaying by remember { androidx.compose.runtime.mutableStateOf(false) }
+    val player = remember { android.media.MediaPlayer() }
+    androidx.compose.runtime.DisposableEffect(filePath) {
+        runCatching {
+            player.reset()
+            player.setDataSource(filePath)
+            player.prepare()
+            player.setOnCompletionListener { isPlaying = false }
+        }
+        onDispose { runCatching { player.release() } }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable {
+                if (isPlaying) {
+                    runCatching { player.pause() }
+                    isPlaying = false
+                } else {
+                    runCatching { player.start() }
+                    isPlaying = true
+                }
+            }
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            if (isPlaying) androidx.compose.material.icons.Icons.Rounded.Stop
+            else androidx.compose.material.icons.Icons.Rounded.PlayArrow,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(28.dp)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text("Voice memo", style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold)
+            Text("%.1f s".format(durationMs / 1000.0),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+

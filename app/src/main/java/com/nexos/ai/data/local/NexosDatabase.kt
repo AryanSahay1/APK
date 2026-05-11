@@ -11,7 +11,7 @@ import com.nexos.ai.data.local.entity.Note
 
 @Database(
     entities = [Note::class, Alarm::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class NexosDatabase : RoomDatabase() {
@@ -51,6 +51,20 @@ abstract class NexosDatabase : RoomDatabase() {
         val MIGRATION_2_3: Migration = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE alarms ADD COLUMN recurDaysMask INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /**
+         * v3 → v4: adds the notebook + attachments columns to the existing notes table. All
+         * defaults are no-ops for pre-v4 notes; existing data flows through unchanged.
+         */
+        val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN attachmentsJson TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE notes ADD COLUMN isNotebook INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE notes ADD COLUMN notebookId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE notes ADD COLUMN coverDesignJson TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE notes ADD COLUMN isNotebookCompleted INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

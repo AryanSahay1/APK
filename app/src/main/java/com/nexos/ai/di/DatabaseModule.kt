@@ -24,7 +24,11 @@ object DatabaseModule {
             NexosDatabase::class.java,
             NexosDatabase.DATABASE_NAME
         )
-            .addMigrations(NexosDatabase.MIGRATION_1_2, NexosDatabase.MIGRATION_2_3)
+            .addMigrations(
+                NexosDatabase.MIGRATION_1_2,
+                NexosDatabase.MIGRATION_2_3,
+                NexosDatabase.MIGRATION_3_4
+            )
             // Defensive only: real migrations should be added above. Used as a safety net so
             // a future schema bump that ships without a migration does not crash existing users
             // — they lose only the affected new tables, never their notes.
