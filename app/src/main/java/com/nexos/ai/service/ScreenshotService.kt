@@ -130,16 +130,11 @@ class ScreenshotService : Service() {
             Log.w(tag, "captureScreen called without projection grant")
             return null
         }
-        val metrics = DisplayMetrics()
-        @Suppress("DEPRECATION")
-        (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.getRealMetrics(metrics)
-        val width = metrics.widthPixels
-        val height = metrics.heightPixels
-        val density = metrics.densityDpi
+        val (width, height, density) = currentDisplayMetrics()
 
         val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
         val deferred = CompletableDeferred<Bitmap?>()
-        var virtualDisplay: VirtualDisplay? = null
+        var virtualDisplay: VirtualDisplay?
 
         reader.setOnImageAvailableListener({ r ->
             var img: Image? = null
@@ -177,6 +172,23 @@ class ScreenshotService : Service() {
         runCatching { virtualDisplay?.release() }
         runCatching { reader.close() }
         return bitmap
+    }
+
+    /**
+     * Real display metrics across API levels. Returns (width, height, densityDpi).
+     */
+    private fun currentDisplayMetrics(): Triple<Int, Int, Int> {
+        val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val bounds = wm.currentWindowMetrics.bounds
+            val density = resources.configuration.densityDpi
+            Triple(bounds.width(), bounds.height(), density)
+        } else {
+            val metrics = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            wm.defaultDisplay.getRealMetrics(metrics)
+            Triple(metrics.widthPixels, metrics.heightPixels, metrics.densityDpi)
+        }
     }
 
     private fun imageToBitmap(image: Image, width: Int, height: Int): Bitmap {

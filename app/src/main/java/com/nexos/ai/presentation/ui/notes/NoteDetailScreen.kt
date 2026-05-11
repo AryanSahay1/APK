@@ -15,7 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Share
@@ -48,10 +48,13 @@ import com.nexos.ai.presentation.ui.theme.NexosPrimarySoft
 import com.nexos.ai.presentation.viewmodel.NoteDetailViewModel
 import com.nexos.ai.util.toFormattedDateTime
 
+/**
+ * @param noteId The note being displayed. Read by the ViewModel via SavedStateHandle.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
-    noteId: Long,
+    @Suppress("UNUSED_PARAMETER") noteId: Long,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     viewModel: NoteDetailViewModel = hiltViewModel()
@@ -67,7 +70,7 @@ fun NoteDetailScreen(
                 title = { Text("Note", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {

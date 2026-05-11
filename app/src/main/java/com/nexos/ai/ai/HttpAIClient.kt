@@ -34,9 +34,15 @@ internal object HttpAIClient {
             .writeTimeout(15, TimeUnit.SECONDS)
             .apply {
                 if (BuildConfig.DEBUG) {
-                    addInterceptor(HttpLoggingInterceptor { msg -> Log.d(TAG, msg) }.apply {
+                    val logger = HttpLoggingInterceptor { msg -> Log.d(TAG, msg) }.apply {
                         level = HttpLoggingInterceptor.Level.BASIC
-                    })
+                        // Defensive: even though we use header auth, never let any auth-bearing
+                        // header reach Logcat. Protects against future provider mis-configuration.
+                        redactHeader("Authorization")
+                        redactHeader("x-api-key")
+                        redactHeader("x-goog-api-key")
+                    }
+                    addInterceptor(logger)
                 }
             }
             .build()

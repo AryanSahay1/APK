@@ -3,7 +3,7 @@ package com.nexos.ai.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexos.ai.domain.model.VoiceState
-import com.nexos.ai.util.NexosOrchestrator
+import com.nexos.ai.domain.usecase.SaveVoiceNoteUseCase
 import com.nexos.ai.voice.VoiceInputManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -25,7 +25,7 @@ data class VoiceUiState(
 @HiltViewModel
 class VoiceCaptureViewModel @Inject constructor(
     private val voiceManager: VoiceInputManager,
-    private val orchestrator: NexosOrchestrator
+    private val saveVoiceNote: SaveVoiceNoteUseCase
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(VoiceUiState())
@@ -61,7 +61,7 @@ class VoiceCaptureViewModel @Inject constructor(
 
     private fun saveTranscript(text: String) {
         viewModelScope.launch {
-            val note = orchestrator.handleVoiceTranscript(text)
+            val note = saveVoiceNote(text)
             _ui.update { it.copy(saved = note != null, savedNoteId = note?.id ?: -1L) }
         }
     }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -70,5 +71,11 @@ fun OnboardingScreen(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = NexosPrimary, contentColor = NexosBackground)
         ) { Text("Get started", fontWeight = FontWeight.SemiBold) }
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = onRequestScreenCapture,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(14.dp)
+        ) { Text("Grant screen capture now (optional)") }
     }
 }

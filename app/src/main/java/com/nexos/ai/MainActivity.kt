@@ -1,7 +1,9 @@
 package com.nexos.ai
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.nexos.ai.presentation.navigation.NexosNavHost
 import com.nexos.ai.presentation.ui.theme.NexosTheme
@@ -25,16 +28,30 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var projectionLauncher: ActivityResultLauncher<Intent>
+    private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        notificationPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { /* result irrelevant — notification helper checks at point of use */ }
+
+        // Android 13+ — request runtime permission for POST_NOTIFICATIONS so save confirmations work
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         projectionLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-                val intent = ScreenshotService.startIntent(this, result.resultCode, result.data!!)
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                val intent = ScreenshotService.startIntent(this, result.resultCode, data)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
                 else startService(intent)
 

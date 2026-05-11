@@ -60,11 +60,9 @@ fun VoiceCaptureScreen(
 ) {
     val ui by viewModel.ui.collectAsStateWithLifecycle()
     var permissionGranted by remember { mutableStateOf(false) }
-    var permissionAsked by remember { mutableStateOf(false) }
 
     val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         permissionGranted = granted
-        permissionAsked = true
         if (granted) viewModel.startListening()
     }
 

@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,10 +37,15 @@ import com.nexos.ai.presentation.ui.theme.NexosBackground
 import com.nexos.ai.presentation.ui.theme.NexosPrimary
 import com.nexos.ai.presentation.viewmodel.EditNoteViewModel
 
+/**
+ * @param noteId The note being edited. Passed by the nav route as `editNote/{noteId}`. The
+ *               ViewModel reads it via SavedStateHandle, so this composable parameter is
+ *               informational only — Compose Nav requires it as a key for backstack stability.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditNoteScreen(
-    noteId: Long,
+    @Suppress("UNUSED_PARAMETER") noteId: Long,
     onSaved: (Long) -> Unit,
     onCancel: () -> Unit,
     viewModel: EditNoteViewModel = hiltViewModel()
@@ -60,7 +65,7 @@ fun EditNoteScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NexosBackground)

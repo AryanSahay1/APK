@@ -1,8 +1,10 @@
 package com.nexos.ai.util
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.compose.ui.Modifier
 import java.text.SimpleDateFormat
@@ -40,6 +42,28 @@ fun Context.openOverlaySettings() {
         Uri.parse("package:$packageName")
     ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     startActivity(intent)
+}
+
+/**
+ * Whether the system is currently ignoring battery optimisations for this package. Required for
+ * the floating button to survive aggressive OEM background restrictions (SKILL-1.md §8).
+ */
+fun Context.isBatteryOptimizationIgnored(): Boolean {
+    val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return true
+    return pm.isIgnoringBatteryOptimizations(packageName)
+}
+
+/**
+ * Open the system dialog asking the user to whitelist NexOS. Requires
+ * REQUEST_IGNORE_BATTERY_OPTIMIZATIONS in the manifest (already declared).
+ */
+fun Activity.requestBatteryOptimizationExempt() {
+    if (isBatteryOptimizationIgnored()) return
+    val intent = Intent(
+        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+        Uri.parse("package:$packageName")
+    )
+    runCatching { startActivity(intent) }
 }
 
 inline fun Modifier.thenIf(condition: Boolean, builder: Modifier.() -> Modifier): Modifier =

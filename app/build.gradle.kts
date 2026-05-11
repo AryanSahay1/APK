@@ -60,7 +60,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
 
     packaging {
@@ -84,8 +84,8 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-    // Compose
-    val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
+    // Compose — versions locked to SKILL-1.md §2 (BOM 2024.01.00, compiler 1.5.7)
+    val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation("androidx.compose.ui:ui")
@@ -97,15 +97,15 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.navigation:navigation-compose:2.7.6")
 
-    // Lifecycle
+    // Lifecycle (SKILL-1.md §2: 2.7.0)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-service:2.7.0")
 
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    ksp("com.google.dagger:hilt-android-compiler:2.50")
+    // Hilt (SKILL-1.md §2: 2.48.1)
+    implementation("com.google.dagger:hilt-android:2.48.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.48.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Room
@@ -113,11 +113,11 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
-    // Networking — Retrofit + OkHttp
+    // Networking — Retrofit + OkHttp (SKILL-1.md §2: retrofit 2.9.0, okhttp 4.11.0)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     // ML Kit OCR (on-device, no API key)
     implementation("com.google.mlkit:text-recognition:16.0.0")
@@ -128,8 +128,9 @@ dependencies {
     // Security — EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // Coroutines
+    // Coroutines (SKILL-1.md §2: 1.7.3)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     // Gson (JSON parsing for AI responses)
     implementation("com.google.code.gson:gson:2.10.1")
@@ -147,7 +148,7 @@ dependencies {
     // Unit testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("com.google.truth:truth:1.4.0")
+    testImplementation("com.google.truth:truth:1.1.5")
 
     // Instrumentation testing
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

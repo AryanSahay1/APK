@@ -177,19 +177,18 @@ class FloatingButtonService : Service() {
         val container = inflater.inflate(R.layout.view_floating_button, null, false)
         val icon = container.findViewById<ImageView>(R.id.floating_icon)
 
-        val display = (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
-        val outSize = android.graphics.Point().also { display.getSize(it) }
+        val (screenW, screenH) = currentScreenSize()
 
         scope.launch {
             val side = settingsRepository.floatingButtonSide.first()
             val yFraction = settingsRepository.floatingButtonY.first()
             val size = (56 * Resources.getSystem().displayMetrics.density).toInt()
-            layoutParams.x = if (side == "left") 16 else outSize.x - size - 16
-            layoutParams.y = (outSize.y * yFraction).toInt()
+            layoutParams.x = if (side == "left") 16 else screenW - size - 16
+            layoutParams.y = (screenH * yFraction).toInt()
             runCatching { windowManager?.updateViewLayout(container, layoutParams) }
         }
 
-        attachDragBehavior(icon, container, outSize.x, outSize.y)
+        attachDragBehavior(icon, container, screenW, screenH)
 
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         try {
@@ -274,10 +273,27 @@ class FloatingButtonService : Service() {
         }
         anim.start()
 
-        val display = (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
-        val outSize = android.graphics.Point().also { display.getSize(it) }
-        val yFraction = (layoutParams.y.toFloat() / outSize.y.coerceAtLeast(1)).coerceIn(0f, 1f)
+        val (_, screenH) = currentScreenSize()
+        val yFraction = (layoutParams.y.toFloat() / screenH.coerceAtLeast(1)).coerceIn(0f, 1f)
         scope.launch { settingsRepository.setFloatingButtonPosition(side, yFraction) }
+    }
+
+    /**
+     * Returns the current screen size in pixels, using the Android 11+ API when available and
+     * falling back to the deprecated Display#getSize on older devices.
+     */
+    private fun currentScreenSize(): Pair<Int, Int> {
+        val wm = (getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val bounds = wm.currentWindowMetrics.bounds
+            bounds.width() to bounds.height()
+        } else {
+            @Suppress("DEPRECATION")
+            val display = wm.defaultDisplay
+            val point = android.graphics.Point()
+            @Suppress("DEPRECATION") display.getSize(point)
+            point.x to point.y
+        }
     }
 
     private fun bindScreenshotService() {
@@ -303,13 +319,25 @@ class FloatingButtonService : Service() {
                 return@launch
             }
             val bitmap = svc.captureScreen()
-            orchestrator.handleScreenshotCapture(bitmap)
-            // Recycle bitmap shortly after OCR completes
+            val imagePath = bitmap?.let { saveBitmapToCache(it) }.orEmpty()
+            orchestrator.handleScreenshotCapture(bitmap, imagePath)
+            // Recycle bitmap shortly after OCR completes (Layer 5: Image Cache Management).
             scope.launch {
                 delay(8_000L)
                 runCatching { bitmap?.recycle() }
             }
         }
+    }
+
+    private fun saveBitmapToCache(bitmap: android.graphics.Bitmap): String {
+        return runCatching {
+            val file = java.io.File(cacheDir, "nexos_capture_${System.currentTimeMillis()}.webp")
+            file.outputStream().use { out ->
+                @Suppress("DEPRECATION")
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.WEBP, 80, out)
+            }
+            file.absolutePath
+        }.getOrDefault("")
     }
 
     private fun startVoice() {

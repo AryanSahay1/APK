@@ -61,4 +61,22 @@ class SettingsRepository @Inject constructor(
             it[NexosPreferences.FLOATING_BUTTON_Y] = yFraction.coerceIn(0f, 1f).toString()
         }
     }
+
+    /**
+     * Wipes the screenshot cache directory. Architecture (Layer 5 — Image Cache Management):
+     * cache lives only so users can view the original screenshot that generated a note. The
+     * Settings screen exposes this; nothing else depends on those files being present.
+     */
+    suspend fun clearImageCache(): Long = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        var bytes = 0L
+        runCatching {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (file.isFile && file.name.startsWith("nexos_capture_")) {
+                    bytes += file.length()
+                    file.delete()
+                }
+            }
+        }
+        bytes
+    }
 }

@@ -20,7 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.VerifiedUser
@@ -90,7 +90,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = { Text("Settings", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Rounded.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NexosBackground)
             )
@@ -166,6 +166,11 @@ fun SettingsScreen(
                     viewModel.setShowFloatingButton(value)
                 }
             )
+
+            SectionTitle("Storage")
+            TextButton(onClick = { viewModel.clearImageCache() }) {
+                Text("Clear image cache")
+            }
 
             SectionTitle("About")
             Text(

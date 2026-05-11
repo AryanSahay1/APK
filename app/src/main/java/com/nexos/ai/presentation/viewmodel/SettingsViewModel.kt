@@ -98,4 +98,12 @@ class SettingsViewModel @Inject constructor(
     fun clearTestResult() {
         _state.update { it.copy(testResult = null) }
     }
+
+    fun clearImageCache() {
+        viewModelScope.launch {
+            val freed = settings.clearImageCache()
+            val message = if (freed > 0) "Freed ${freed / 1024} KB" else "Cache already empty"
+            _state.update { it.copy(testResult = message) }
+        }
+    }
 }

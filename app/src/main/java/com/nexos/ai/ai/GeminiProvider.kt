@@ -40,9 +40,12 @@ class GeminiProvider(private val apiKey: String) : AIProvider {
             add("generationConfig", genConfig)
         }.toString()
 
-        val url = "$baseUrl?key=$apiKey"
+        // Use the x-goog-api-key header instead of the ?key= query parameter so the API key
+        // never appears in URLs — important because OkHttp's logging interceptor records
+        // request URLs even at BASIC level.
         val request = Request.Builder()
-            .url(url)
+            .url(baseUrl)
+            .addHeader("x-goog-api-key", apiKey)
             .addHeader("Content-Type", "application/json")
         return HttpAIClient.execute(providerKey, request, body) { raw ->
             val obj = JsonParser.parseString(raw).asJsonObject

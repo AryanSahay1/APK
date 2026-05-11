@@ -21,9 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.Cloud
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -45,14 +42,14 @@ import com.nexos.ai.presentation.ui.theme.NexosSurfaceElevated
 
 @Composable
 fun WorkflowBanner(state: WorkflowState, modifier: Modifier = Modifier) {
-    val (label: String?, icon: ImageVector?) = when (state) {
-        WorkflowState.Idle -> null to null
-        WorkflowState.Capturing -> "Capturing screen" to Icons.Rounded.Bolt
-        WorkflowState.ExtractingText -> "Extracting text" to Icons.Rounded.AutoAwesome
-        WorkflowState.AiProcessing -> "Asking AI" to Icons.Rounded.Cloud
-        WorkflowState.Saving -> "Saving note" to Icons.Rounded.Save
-        is WorkflowState.Done -> null to null
-        is WorkflowState.Failed -> state.error to Icons.Rounded.Bolt
+    val label: String? = when (state) {
+        WorkflowState.Idle -> null
+        WorkflowState.Capturing -> "Capturing screen"
+        WorkflowState.ExtractingText -> "Extracting text"
+        WorkflowState.AiProcessing -> "Asking AI"
+        WorkflowState.Saving -> "Saving note"
+        is WorkflowState.Done -> null
+        is WorkflowState.Failed -> state.error
     }
     AnimatedVisibility(visible = label != null, modifier = modifier) {
         val infinite = rememberInfiniteTransition(label = "banner-pulse")
