@@ -14,37 +14,34 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsBike
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocalDining
+import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.RestaurantMenu
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,70 +50,78 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.nexos.ai.presentation.ui.theme.NexosBackground
-import com.nexos.ai.presentation.ui.theme.NexosBorder
-import com.nexos.ai.presentation.ui.theme.NexosPrimary
-import com.nexos.ai.presentation.ui.theme.NexosPrimarySoft
+import com.nexos.ai.presentation.ui.components.PandaMascot
+import com.nexos.ai.presentation.ui.components.PandaMotion
 import com.nexos.ai.util.DeepLinks
 
 /**
- * The Hub: every Phase-4 super-app integration in one screen. Each tile launches a public
- * deep link with a Play Store fallback when the target app isn't installed.
- *
- * No tile here calls any paid API — they all use the public URI schemes the destination apps
- * advertise. NexOS does not transmit user data to any server in service of these tiles.
+ * The Hub: every Phase-4 + v1.1 integration in one screen. Tiles are grouped visually by
+ * category (Information, Lifestyle, Transport, Food, Settings). Each tile routes to a
+ * dedicated detail screen where possible, falling back to a public deep link.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SuperAppHubScreen(
     onOpenAlarms: () -> Unit,
+    onOpenWeather: () -> Unit,
+    onOpenMaps: () -> Unit,
+    onOpenGoogle: () -> Unit,
+    onOpenUber: () -> Unit,
+    onOpenSwiggy: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit
 ) {
     val context = LocalContext.current
-    var promptKind by remember { mutableStateOf<HubPromptKind?>(null) }
-    var input by remember { mutableStateOf("") }
+    var rapidoPrompt by remember { mutableStateOf(false) }
+    var zomatoPrompt by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = NexosBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        com.nexos.ai.presentation.ui.components.PandaMascot(size = 28.dp, hasLeaf = false)
-                        Spacer(Modifier.size(10.dp))
+                        PandaMascot(size = 30.dp, hasLeaf = true, motion = PandaMotion.Wave)
+                        Spacer(Modifier.width(10.dp))
                         Text("Hub", fontWeight = FontWeight.SemiBold)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NexosBackground)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
-        // Tile order: most-used at the top. Colours hint at each brand without using their
-        // trademarked logos (we use abstract tints + the icon).
         val tiles = listOf(
+            // — Information —
+            HubTile("Weather", "Forecast + 7 days", Icons.Rounded.Cloud,
+                accent = Color(0xFF4DA6FF), accentBg = Color(0x334DA6FF)) { onOpenWeather() },
+            HubTile("Maps", "Find anything near you", Icons.Rounded.Map,
+                accent = Color(0xFF34A853), accentBg = Color(0x3334A853)) { onOpenMaps() },
+            HubTile("Google", "Gmail · Calendar · Drive", Icons.Rounded.Public,
+                accent = Color(0xFFEA4335), accentBg = Color(0x33EA4335)) { onOpenGoogle() },
             HubTile("Alarms & reminders", "Natural-language scheduler", Icons.Rounded.Alarm,
-                accent = Color(0xFF00E676)) { onOpenAlarms() },
-            HubTile("Uber", "Book a ride to anywhere", Icons.Rounded.DirectionsCar,
-                accent = Color(0xFF000000), accentBg = Color(0xFF1A1A1A)) {
-                promptKind = HubPromptKind.Uber
-            },
+                accent = Color(0xFF00E676), accentBg = Color(0x3300E676)) { onOpenAlarms() },
+
+            // — Transport —
+            HubTile("Uber", "Book a ride", Icons.Rounded.DirectionsCar,
+                accent = Color(0xFF000000), accentBg = Color(0x331A1A1A)) { onOpenUber() },
             HubTile("Rapido", "Bike ride, fast", Icons.AutoMirrored.Rounded.DirectionsBike,
                 accent = Color(0xFFFFC107), accentBg = Color(0x33FFC107)) {
-                promptKind = HubPromptKind.Rapido
+                rapidoPrompt = true
             },
+
+            // — Food —
+            HubTile("Swiggy", "Delivery in minutes", Icons.Rounded.LocalDining,
+                accent = Color(0xFFFC8019), accentBg = Color(0x33FC8019)) { onOpenSwiggy() },
             HubTile("Zomato", "Find food near you", Icons.Rounded.RestaurantMenu,
                 accent = Color(0xFFE23744), accentBg = Color(0x33E23744)) {
-                promptKind = HubPromptKind.Zomato
+                zomatoPrompt = true
             },
-            HubTile("Swiggy", "Delivery in minutes", Icons.Rounded.LocalDining,
-                accent = Color(0xFFFC8019), accentBg = Color(0x33FC8019)) {
-                promptKind = HubPromptKind.Swiggy
-            },
-            HubTile("Settings", "AI, news, floating button", Icons.Rounded.Settings,
-                accent = Color(0xFF4DA6FF)) { onOpenSettings() },
+
+            // — Settings —
+            HubTile("Settings", "AI, news, theme, floating button", Icons.Rounded.Settings,
+                accent = Color(0xFF4DA6FF), accentBg = Color(0x334DA6FF)) { onOpenSettings() },
             HubTile("About & privacy", "How NexOS handles your data", Icons.Rounded.Info,
-                accent = Color(0xFF9C7BFF)) { onOpenAbout() }
+                accent = Color(0xFF9C7BFF), accentBg = Color(0x339C7BFF)) { onOpenAbout() }
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -129,25 +134,25 @@ fun SuperAppHubScreen(
         }
     }
 
-    val current = promptKind
-    if (current != null) {
-        DeepLinkPromptDialog(
-            kind = current,
-            value = input,
-            onValueChange = { input = it },
-            onCancel = {
-                promptKind = null
-                input = ""
-            },
-            onConfirm = {
-                when (current) {
-                    HubPromptKind.Uber -> DeepLinks.launchUber(context, input.ifBlank { "home" })
-                    HubPromptKind.Rapido -> DeepLinks.launchRapido(context, input.ifBlank { "home" })
-                    HubPromptKind.Zomato -> DeepLinks.launchZomato(context, input)
-                    HubPromptKind.Swiggy -> DeepLinks.launchSwiggy(context, input)
-                }
-                promptKind = null
-                input = ""
+    if (rapidoPrompt) {
+        DeepLinkQuickPrompt(
+            title = "Open Rapido",
+            placeholder = "Destination address",
+            onCancel = { rapidoPrompt = false },
+            onConfirm = { value ->
+                rapidoPrompt = false
+                if (value.isNotBlank()) DeepLinks.launchRapido(context, value)
+            }
+        )
+    }
+    if (zomatoPrompt) {
+        DeepLinkQuickPrompt(
+            title = "Open Zomato",
+            placeholder = "Search (e.g. biryani)",
+            onCancel = { zomatoPrompt = false },
+            onConfirm = { value ->
+                zomatoPrompt = false
+                if (value.isNotBlank()) DeepLinks.launchZomato(context, value)
             }
         )
     }
@@ -162,8 +167,6 @@ private data class HubTile(
     val onClick: () -> Unit
 )
 
-private enum class HubPromptKind { Uber, Rapido, Zomato, Swiggy }
-
 @Composable
 private fun TileCard(tile: HubTile) {
     Column(
@@ -171,7 +174,7 @@ private fun TileCard(tile: HubTile) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, NexosBorder, RoundedCornerShape(20.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
             .clickable(onClick = tile.onClick)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -200,20 +203,14 @@ private fun TileCard(tile: HubTile) {
 }
 
 @Composable
-private fun DeepLinkPromptDialog(
-    kind: HubPromptKind,
-    value: String,
-    onValueChange: (String) -> Unit,
+private fun DeepLinkQuickPrompt(
+    title: String,
+    placeholder: String,
     onCancel: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: (String) -> Unit
 ) {
-    val (title, hint) = when (kind) {
-        HubPromptKind.Uber -> "Book Uber" to "Destination address"
-        HubPromptKind.Rapido -> "Book Rapido" to "Destination address"
-        HubPromptKind.Zomato -> "Open Zomato" to "Search query (e.g. biryani)"
-        HubPromptKind.Swiggy -> "Open Swiggy" to "Search query (e.g. pizza)"
-    }
-    AlertDialog(
+    var input by remember { mutableStateOf("") }
+    androidx.compose.material3.AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(title) },
         text = {
@@ -224,28 +221,26 @@ private fun DeepLinkPromptDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    placeholder = { Text(hint) },
+                androidx.compose.material3.OutlinedTextField(
+                    value = input,
+                    onValueChange = { input = it },
+                    placeholder = { Text(placeholder) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = NexosPrimary,
-                        unfocusedIndicatorColor = NexosBorder,
-                        cursorColor = NexosPrimary
-                    )
+                    shape = RoundedCornerShape(10.dp)
                 )
             }
         },
         confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = NexosPrimary, contentColor = NexosBackground)
+            androidx.compose.material3.Button(
+                onClick = { onConfirm(input) },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) { Text("Open") }
         },
-        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } }
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onCancel) { Text("Cancel") }
+        }
     )
 }

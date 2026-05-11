@@ -119,6 +119,116 @@ object DeepLinks {
         return openOrFallback(context, gmm, fallback, playStorePackage = "com.google.android.apps.maps")
     }
 
+    /** Open Google Maps for turn-by-turn navigation to a destination. */
+    fun launchMapsDirections(context: Context, destination: String): LaunchResult {
+        val nav = Uri.parse("google.navigation:q=${urlEncode(destination)}")
+        val fallback = Uri.parse(
+            "https://www.google.com/maps/dir/?api=1&destination=${urlEncode(destination)}"
+        )
+        return openOrFallback(context, nav, fallback, playStorePackage = "com.google.android.apps.maps")
+    }
+
+    // -------- Google ecosystem --------
+
+    /** Compose a Gmail email. Both fields optional. */
+    fun launchGmailCompose(context: Context, to: String = "", subject: String = ""): LaunchResult {
+        val mailto = Uri.parse(
+            buildString {
+                append("mailto:")
+                append(urlEncode(to))
+                val params = mutableListOf<String>()
+                if (subject.isNotBlank()) params += "subject=${urlEncode(subject)}"
+                if (params.isNotEmpty()) {
+                    append("?")
+                    append(params.joinToString("&"))
+                }
+            }
+        )
+        val fallback = Uri.parse("https://mail.google.com/mail/?view=cm&to=${urlEncode(to)}&su=${urlEncode(subject)}")
+        return openOrFallback(context, mailto, fallback, playStorePackage = "com.google.android.gm")
+    }
+
+    /** Open Google Calendar to create a new event. */
+    fun launchCalendarEvent(context: Context, title: String = ""): LaunchResult {
+        val deepLink = Uri.parse(
+            "content://com.android.calendar/time"
+        )
+        val intent = Intent(Intent.ACTION_INSERT)
+            .setData(android.provider.CalendarContract.Events.CONTENT_URI)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (title.isNotBlank()) {
+            intent.putExtra(android.provider.CalendarContract.Events.TITLE, title)
+        }
+        return try {
+            context.startActivity(intent)
+            LaunchResult.OpenedNative
+        } catch (e: ActivityNotFoundException) {
+            val webFallback = Uri.parse(
+                "https://calendar.google.com/calendar/u/0/r/eventedit?text=${urlEncode(title)}"
+            )
+            openOrFallback(context, deepLink, webFallback, playStorePackage = "com.google.android.calendar")
+        }
+    }
+
+    /** Open Google Drive. */
+    fun launchDrive(context: Context): LaunchResult {
+        val drive = Uri.parse("https://drive.google.com/")
+        return openOrFallback(
+            context,
+            primary = drive,
+            fallbackHttps = drive,
+            playStorePackage = "com.google.android.apps.docs"
+        )
+    }
+
+    /** Open a Google web search for the query. */
+    fun launchGoogleSearch(context: Context, query: String): LaunchResult {
+        val web = Uri.parse("https://www.google.com/search?q=${urlEncode(query)}")
+        return openOrFallback(
+            context,
+            primary = web,
+            fallbackHttps = web,
+            playStorePackage = "com.google.android.googlequicksearchbox"
+        )
+    }
+
+    /** Open Google Translate. */
+    fun launchTranslate(context: Context, text: String = ""): LaunchResult {
+        val web = Uri.parse("https://translate.google.com/?text=${urlEncode(text)}")
+        return openOrFallback(
+            context,
+            primary = web,
+            fallbackHttps = web,
+            playStorePackage = "com.google.android.apps.translate"
+        )
+    }
+
+    /** Open Google Photos. */
+    fun launchPhotos(context: Context): LaunchResult {
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return try {
+            context.startActivity(intent)
+            LaunchResult.OpenedNative
+        } catch (e: ActivityNotFoundException) {
+            val web = Uri.parse("https://photos.google.com/")
+            openOrFallback(context, web, web, playStorePackage = "com.google.android.apps.photos")
+        }
+    }
+
+    /** Open YouTube with a search query. */
+    fun launchYouTube(context: Context, query: String = ""): LaunchResult {
+        val native = if (query.isBlank()) Uri.parse("https://www.youtube.com/")
+        else Uri.parse("https://www.youtube.com/results?search_query=${urlEncode(query)}")
+        return openOrFallback(
+            context,
+            primary = native,
+            fallbackHttps = native,
+            playStorePackage = "com.google.android.youtube"
+        )
+    }
+
     // -------- Plumbing --------
 
     /**

@@ -39,6 +39,8 @@ object Constants {
     const val SOURCE_MANUAL = "manual"
     const val SOURCE_SHARED_TEXT = "shared"
     const val SOURCE_NEWS = "news"
+    const val SOURCE_WEATHER = "weather"
+    const val SOURCE_MAPS = "maps"
 
     // Provider keys
     const val PROVIDER_NONE = "none"

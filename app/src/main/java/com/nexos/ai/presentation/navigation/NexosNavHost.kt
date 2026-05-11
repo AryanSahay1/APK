@@ -28,17 +28,20 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.nexos.ai.presentation.ui.alarms.AlarmsScreen
+import com.nexos.ai.presentation.ui.google.GoogleEcosystemScreen
 import com.nexos.ai.presentation.ui.hub.AboutScreen
 import com.nexos.ai.presentation.ui.hub.SuperAppHubScreen
+import com.nexos.ai.presentation.ui.hub.SwiggyDetailScreen
+import com.nexos.ai.presentation.ui.hub.UberDetailScreen
+import com.nexos.ai.presentation.ui.maps.MapsScreen
 import com.nexos.ai.presentation.ui.news.NewsScreen
 import com.nexos.ai.presentation.ui.notes.EditNoteScreen
 import com.nexos.ai.presentation.ui.notes.NoteDetailScreen
 import com.nexos.ai.presentation.ui.notes.NoteListScreen
 import com.nexos.ai.presentation.ui.onboarding.OnboardingScreen
 import com.nexos.ai.presentation.ui.settings.SettingsScreen
-import com.nexos.ai.presentation.ui.theme.NexosBackground
-import com.nexos.ai.presentation.ui.theme.NexosPrimary
 import com.nexos.ai.presentation.ui.voice.VoiceCaptureScreen
+import com.nexos.ai.presentation.ui.weather.WeatherScreen
 
 object Routes {
     const val NOTES = "noteList"
@@ -51,6 +54,11 @@ object Routes {
     const val HUB = "hub"
     const val ALARMS = "alarms"
     const val ABOUT = "about"
+    const val WEATHER = "weather"
+    const val MAPS = "maps"
+    const val GOOGLE = "google"
+    const val UBER = "uber"
+    const val SWIGGY = "swiggy"
 
     fun noteDetail(id: Long) = "noteDetail/$id"
     fun editNote(id: Long = -1L) = "editNote/$id"
@@ -86,10 +94,10 @@ fun NexosNavHost(
     val showBottomBar = currentRoute in bottomTabs.map { it.route }
 
     Scaffold(
-        containerColor = NexosBackground,
+        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(containerColor = NexosBackground) {
+                NavigationBar(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background) {
                     bottomTabs.forEach { tab ->
                         NavigationBarItem(
                             selected = currentRoute == tab.route,
@@ -107,9 +115,9 @@ fun NexosNavHost(
                             icon = { Icon(tab.icon, contentDescription = tab.label) },
                             label = { Text(tab.label) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = NexosPrimary,
-                                selectedTextColor = NexosPrimary,
-                                indicatorColor = NexosBackground
+                                selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.background
                             )
                         )
                     }
@@ -154,12 +162,35 @@ fun NexosNavHost(
             composable(Routes.HUB) {
                 SuperAppHubScreen(
                     onOpenAlarms = { navController.navigate(Routes.ALARMS) },
+                    onOpenWeather = { navController.navigate(Routes.WEATHER) },
+                    onOpenMaps = { navController.navigate(Routes.MAPS) },
+                    onOpenGoogle = { navController.navigate(Routes.GOOGLE) },
+                    onOpenUber = { navController.navigate(Routes.UBER) },
+                    onOpenSwiggy = { navController.navigate(Routes.SWIGGY) },
                     onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                     onOpenAbout = { navController.navigate(Routes.ABOUT) }
                 )
             }
             composable(Routes.ALARMS) {
                 AlarmsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.WEATHER) {
+                WeatherScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenNote = { id -> navController.navigate(Routes.noteDetail(id)) }
+                )
+            }
+            composable(Routes.MAPS) {
+                MapsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.GOOGLE) {
+                GoogleEcosystemScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.UBER) {
+                UberDetailScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.SWIGGY) {
+                SwiggyDetailScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.ABOUT) {
                 AboutScreen(onBack = { navController.popBackStack() })

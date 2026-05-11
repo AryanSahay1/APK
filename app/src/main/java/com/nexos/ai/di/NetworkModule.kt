@@ -2,6 +2,8 @@ package com.nexos.ai.di
 
 import com.nexos.ai.BuildConfig
 import com.nexos.ai.data.remote.api.NewsApi
+import com.nexos.ai.data.remote.api.OpenMeteoGeocodingApi
+import com.nexos.ai.data.remote.api.WeatherApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,4 +57,32 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideNewsApi(retrofit: Retrofit): NewsApi = retrofit.create(NewsApi::class.java)
+
+    @Provides
+    @Singleton
+    @javax.inject.Named("weatherForecast")
+    fun provideWeatherRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(WeatherApi.FORECAST_BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideWeatherApi(@javax.inject.Named("weatherForecast") retrofit: Retrofit): WeatherApi =
+        retrofit.create(WeatherApi::class.java)
+
+    @Provides
+    @Singleton
+    @javax.inject.Named("weatherGeocoding")
+    fun provideGeocodingRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(OpenMeteoGeocodingApi.GEOCODING_BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideGeocodingApi(@javax.inject.Named("weatherGeocoding") retrofit: Retrofit): OpenMeteoGeocodingApi =
+        retrofit.create(OpenMeteoGeocodingApi::class.java)
 }
