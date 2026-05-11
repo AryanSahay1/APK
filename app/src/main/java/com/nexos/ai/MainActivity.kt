@@ -17,8 +17,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.nexos.ai.data.repository.ThemeMode
 import com.nexos.ai.presentation.navigation.NexosNavHost
 import com.nexos.ai.presentation.ui.theme.NexosTheme
+import com.nexos.ai.presentation.viewmodel.ThemeViewModel
 import com.nexos.ai.service.FloatingButtonService
 import com.nexos.ai.service.ScreenshotService
 import com.nexos.ai.util.Constants
@@ -64,7 +69,9 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            NexosTheme {
+            val themeVm: ThemeViewModel = hiltViewModel()
+            val mode by themeVm.mode.collectAsState(initial = ThemeMode.System)
+            NexosTheme(mode = mode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

@@ -1,18 +1,41 @@
 package com.nexos.ai.presentation.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate as rotateScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
+
+/**
+ * Mascot motion variant — applied as Compose modifiers on top of the static Canvas drawing.
+ *
+ * All motions animate only `transform` and `opacity` (per SKILL.md §24 performance rule).
+ * When the system "Remove animations" setting is active (animator scale = 0), motions
+ * collapse to their static frame.
+ */
+enum class PandaMotion { None, Breathing, Wiggle, Wave, Bouncing, Loading }
 
 /**
  * Hand-drawn panda doodle rendered in Compose so the mascot scales crisply and animates
@@ -25,6 +48,8 @@ import androidx.compose.ui.unit.dp
  * @param size diameter of the bounding box.
  * @param hasLeaf when true, draws the small green bamboo-leaf accent above the right ear.
  * @param sleeping when true, swaps the eyes for closed-eye arcs — used by skeleton/empty states.
+ * @param motion which idle animation to apply. Defaults to [PandaMotion.Breathing] for a
+ *               subtle "alive" feel everywhere the mascot appears.
  */
 @Composable
 fun PandaMascot(
@@ -32,11 +57,17 @@ fun PandaMascot(
     size: Dp = 72.dp,
     hasLeaf: Boolean = true,
     sleeping: Boolean = false,
+    motion: PandaMotion = PandaMotion.Breathing,
     bodyColor: Color = Color(0xFFFAFAFA),
     inkColor: Color = Color(0xFF0F0F14),
     accentColor: Color = Color(0xFF00E676)
 ) {
-    Box(modifier = modifier.size(size)) {
+    val reduceMotion = rememberReduceMotion()
+    val effectiveMotion = if (reduceMotion) PandaMotion.None else motion
+    val motionMod = pandaMotionModifier(effectiveMotion)
+    val leafRotation = if (effectiveMotion == PandaMotion.Wave) leafWaveAngle() else 0f
+
+    Box(modifier = modifier.then(motionMod).size(size)) {
         Canvas(modifier = Modifier.size(size)) {
             drawPandaInto(
                 drawScope = this,
@@ -44,10 +75,80 @@ fun PandaMascot(
                 inkColor = inkColor,
                 accentColor = accentColor,
                 hasLeaf = hasLeaf,
-                sleeping = sleeping
+                sleeping = sleeping,
+                leafRotationDeg = leafRotation
             )
         }
     }
+}
+
+@Composable
+private fun pandaMotionModifier(motion: PandaMotion): Modifier {
+    return when (motion) {
+        PandaMotion.None -> Modifier
+        PandaMotion.Breathing -> {
+            val t = rememberInfiniteTransition(label = "panda-breath")
+            val scale by t.animateFloat(
+                0.97f, 1.0f,
+                animationSpec = infiniteRepeatable(tween(2200), RepeatMode.Reverse),
+                label = "panda-breath-scale"
+            )
+            Modifier.scale(scale)
+        }
+        PandaMotion.Wiggle -> {
+            val t = rememberInfiniteTransition(label = "panda-wiggle")
+            val deg by t.animateFloat(
+                -3f, 3f,
+                animationSpec = infiniteRepeatable(tween(1200), RepeatMode.Reverse),
+                label = "panda-wiggle-deg"
+            )
+            Modifier.rotate(deg)
+        }
+        PandaMotion.Wave -> Modifier // handled inside Canvas via leaf rotation
+        PandaMotion.Bouncing -> {
+            val t = rememberInfiniteTransition(label = "panda-bounce")
+            val y by t.animateFloat(
+                0f, -6f,
+                animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+                label = "panda-bounce-y"
+            )
+            Modifier.intOffset(0, y.toInt())
+        }
+        PandaMotion.Loading -> {
+            val t = rememberInfiniteTransition(label = "panda-spin")
+            val deg by t.animateFloat(
+                0f, 360f,
+                animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing)),
+                label = "panda-spin-deg"
+            )
+            Modifier.rotate(deg)
+        }
+    }
+}
+
+private fun Modifier.intOffset(x: Int, y: Int): Modifier =
+    this.offset { IntOffset(x, y) }
+
+@Composable
+private fun leafWaveAngle(): Float {
+    val t = rememberInfiniteTransition(label = "panda-leaf-wave")
+    val deg by t.animateFloat(
+        0f, 20f,
+        animationSpec = infiniteRepeatable(tween(1600), RepeatMode.Reverse),
+        label = "panda-leaf-wave-deg"
+    )
+    return deg
+}
+
+@Composable
+private fun rememberReduceMotion(): Boolean {
+    val context = LocalContext.current
+    val scale = android.provider.Settings.Global.getFloat(
+        context.contentResolver,
+        android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+        1f
+    )
+    return scale == 0f
 }
 
 private fun drawPandaInto(
@@ -56,7 +157,8 @@ private fun drawPandaInto(
     inkColor: Color,
     accentColor: Color,
     hasLeaf: Boolean,
-    sleeping: Boolean
+    sleeping: Boolean,
+    leafRotationDeg: Float = 0f
 ) {
     with(drawScope) {
         val w = size.width
@@ -138,23 +240,25 @@ private fun drawPandaInto(
         }
         drawPath(smile, inkColor, style = Stroke(width = u(1.6f)))
 
-        // Bamboo leaf
+        // Bamboo leaf — pivots around its stem base when waving
         if (hasLeaf) {
-            val leaf = Path().apply {
-                moveTo(u(82f), u(14f))
-                cubicTo(u(90f), u(8f), u(96f), u(10f), u(98f), u(16f))
-                cubicTo(u(96f), u(22f), u(90f), u(24f), u(82f), u(22f))
-                cubicTo(u(81f), u(20f), u(81f), u(16f), u(82f), u(14f))
-                close()
+            val pivot = Offset(u(82f), u(20f))
+            rotateScope(degrees = leafRotationDeg, pivot = pivot) {
+                val leaf = Path().apply {
+                    moveTo(u(82f), u(14f))
+                    cubicTo(u(90f), u(8f), u(96f), u(10f), u(98f), u(16f))
+                    cubicTo(u(96f), u(22f), u(90f), u(24f), u(82f), u(22f))
+                    cubicTo(u(81f), u(20f), u(81f), u(16f), u(82f), u(14f))
+                    close()
+                }
+                drawPath(leaf, accentColor)
+                drawLine(
+                    color = accentColor,
+                    start = Offset(u(80f), u(24f)),
+                    end = Offset(u(72f), u(34f)),
+                    strokeWidth = u(1.5f)
+                )
             }
-            drawPath(leaf, accentColor)
-            // Leaf stem
-            drawLine(
-                color = accentColor,
-                start = Offset(u(80f), u(24f)),
-                end = Offset(u(72f), u(34f)),
-                strokeWidth = u(1.5f)
-            )
         }
     }
 }

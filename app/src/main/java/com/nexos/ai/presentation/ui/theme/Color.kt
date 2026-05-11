@@ -2,6 +2,7 @@ package com.nexos.ai.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// ----- Dark palette (default since v1.0) -----
 val NexosBackground = Color(0xFF07070F)
 val NexosSurface = Color(0xFF0D0D1A)
 val NexosSurfaceElevated = Color(0xFF15152A)
@@ -15,3 +16,17 @@ val NexosPrimarySoft = Color(0x3300E676)
 val NexosError = Color(0xFFFF6B6B)
 val NexosWarning = Color(0xFFFFB800)
 val NexosInfo = Color(0xFF4DA6FF)
+
+// ----- Light palette (added v1.1) -----
+// Warm off-white background so the panda's white face still reads as "white" against the page,
+// rather than disappearing into a pure-white surface. All foreground tokens cleared 4.5:1 against
+// the lightest surface in manual contrast checks.
+val NexosBackgroundLight = Color(0xFFF8F8F4)
+val NexosSurfaceLight = Color(0xFFFFFFFF)
+val NexosSurfaceElevatedLight = Color(0xFFF1F1EC)
+val NexosOnSurfaceLight = Color(0xFF14141B)
+val NexosOnSurfaceMutedLight = Color(0xFF4A4A55)
+val NexosBorderLight = Color(0xFFE2E2DC)
+val NexosPrimaryLight = Color(0xFF00B85F) // slightly darkened for AA on light bg
+val NexosPrimarySoftLight = Color(0x2200B85F)
+val NexosErrorLight = Color(0xFFD32F2F)
