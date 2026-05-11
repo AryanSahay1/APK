@@ -1,6 +1,10 @@
 package com.nexos.ai.presentation.ui.settings
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +26,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,12 +50,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -56,22 +62,31 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nexos.ai.ai.AIRouter
-import com.nexos.ai.presentation.ui.theme.NexosBackground
-import com.nexos.ai.presentation.ui.theme.NexosBorder
-import com.nexos.ai.presentation.ui.theme.NexosPrimary
-import com.nexos.ai.presentation.ui.theme.NexosPrimarySoft
+import com.nexos.ai.data.repository.ThemeMode
+import com.nexos.ai.presentation.ui.components.PandaMascot
+import com.nexos.ai.presentation.ui.components.PandaMotion
+import com.nexos.ai.presentation.ui.components.PandaSectionIcon
+import com.nexos.ai.presentation.ui.components.PandaSectionKind
 import com.nexos.ai.presentation.viewmodel.SettingsViewModel
+import com.nexos.ai.presentation.viewmodel.ThemeViewModel
 import com.nexos.ai.service.FloatingButtonService
 import com.nexos.ai.util.canDrawOverlays
 import com.nexos.ai.util.openOverlaySettings
 
+/**
+ * Settings — PRD F8 redesign. Every section header has its own animated panda glyph
+ * (PandaSectionIcon). The Theme section gets a Sun/Panda/Moon segmented control that
+ * persists the choice through ThemeViewModel.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val themeMode by themeViewModel.mode.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val keyDrafts = remember { mutableStateMapOf<String, String>() }
@@ -84,14 +99,22 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        containerColor = NexosBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Settings", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back") }
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        PandaMascot(size = 28.dp, hasLeaf = false, motion = PandaMotion.Wiggle)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Settings")
+                    }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NexosBackground)
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) { Snackbar(it) } }
@@ -104,14 +127,27 @@ fun SettingsScreen(
                 .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            SectionTitle("AI provider")
+            // --- Theme ---
+            SectionHeader(
+                kind = PandaSectionKind.Theme,
+                title = "THEME",
+                subtitle = "How NexOS should look",
+                isDark = themeMode == ThemeMode.Dark || (themeMode == ThemeMode.System && isSystemDark())
+            )
+            ThemeSegmentedControl(
+                current = themeMode,
+                onSelect = themeViewModel::setMode
+            )
+
+            // --- AI provider ---
+            SectionHeader(PandaSectionKind.AiProvider, "AI PROVIDER",
+                "NexOS works without AI — keys upgrade notes with summaries")
             Text(
-                "NexOS works without AI. Add a key only to upgrade notes with summaries. " +
-                    "Keys are encrypted with the Android Keystore and never leave your device.",
+                "Keys are encrypted with the Android Keystore and never leave your device. " +
+                    "Headers only — never URL parameters.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
             state.providers.forEach { info ->
                 ProviderCard(
                     info = info,
@@ -126,50 +162,24 @@ fun SettingsScreen(
                     }
                 )
             }
-
             if (state.activeProvider != "none") {
                 TextButton(
                     onClick = { viewModel.testActiveProvider() },
                     enabled = !state.isTesting
                 ) {
-                    Icon(Icons.Rounded.VerifiedUser, contentDescription = null, tint = NexosPrimary)
+                    Icon(Icons.Rounded.VerifiedUser, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(8.dp))
                     Text(if (state.isTesting) "Testing…" else "Test connection")
                 }
             }
 
-            SectionTitle("Behavior")
-            ToggleRow(
-                title = "Auto-summarize captures",
-                subtitle = "Run AI on screenshots and voice notes when a key is set.",
-                checked = state.autoSummarize,
-                onCheckedChange = viewModel::setAutoSummarize
-            )
-            ToggleRow(
-                title = "Show floating button",
-                subtitle = "Always-on overlay so you can capture from any app.",
-                checked = state.showFloatingButton,
-                onCheckedChange = { value ->
-                    if (value) {
-                        if (!context.canDrawOverlays()) {
-                            context.openOverlaySettings()
-                        } else {
-                            FloatingButtonService.startCompat(
-                                context,
-                                Intent(context, FloatingButtonService::class.java)
-                            )
-                        }
-                    } else {
-                        context.stopService(Intent(context, FloatingButtonService::class.java))
-                    }
-                    viewModel.setShowFloatingButton(value)
-                }
-            )
-
-            SectionTitle("News (NewsAPI)")
+            // --- API keys (news) ---
+            SectionHeader(PandaSectionKind.ApiKeys, "NEWS API KEY",
+                "Free at newsapi.org (100 req/day)")
             Text(
-                "Get a free key at https://newsapi.org (100 requests/day, developer tier). " +
-                    "Stored encrypted on this device — never logged or transmitted to NexOS.",
+                "Stored encrypted on this device — never logged or transmitted to NexOS. " +
+                    "Header authentication only.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -183,12 +193,42 @@ fun SettingsScreen(
                 }
             )
 
-            SectionTitle("Storage")
+            // --- Capture / floating button ---
+            SectionHeader(PandaSectionKind.Floating, "CAPTURE",
+                "Floating overlay button + screen-capture behaviour")
+            ToggleRow(
+                title = "Auto-summarize captures",
+                subtitle = "Run AI on screenshots and voice notes when a key is set.",
+                checked = state.autoSummarize,
+                onCheckedChange = viewModel::setAutoSummarize
+            )
+            ToggleRow(
+                title = "Show floating button",
+                subtitle = "Always-on overlay so you can capture from any app.",
+                checked = state.showFloatingButton,
+                onCheckedChange = { value ->
+                    if (value) {
+                        if (!context.canDrawOverlays()) context.openOverlaySettings()
+                        else FloatingButtonService.startCompat(
+                            context, Intent(context, FloatingButtonService::class.java)
+                        )
+                    } else {
+                        context.stopService(Intent(context, FloatingButtonService::class.java))
+                    }
+                    viewModel.setShowFloatingButton(value)
+                }
+            )
+
+            // --- Storage ---
+            SectionHeader(PandaSectionKind.Storage, "STORAGE",
+                "Screen-capture cache — cleared anytime")
             TextButton(onClick = { viewModel.clearImageCache() }) {
                 Text("Clear image cache")
             }
 
-            SectionTitle("About")
+            // --- About ---
+            SectionHeader(PandaSectionKind.AboutMe, "ABOUT",
+                "App version, licence, panda")
             Text(
                 "NexOS · v${com.nexos.ai.BuildConfig.VERSION_NAME}\n" +
                     "All processing happens on this device. The optional AI provider you select " +
@@ -196,16 +236,9 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(20.dp))
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                com.nexos.ai.presentation.ui.components.PandaMascot(
-                    size = 56.dp,
-                    hasLeaf = true,
-                    sleeping = true
-                )
+            Spacer(Modifier.height(8.dp))
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                PandaMascot(size = 64.dp, hasLeaf = true, motion = PandaMotion.Bouncing)
             }
             Spacer(Modifier.height(48.dp))
         }
@@ -213,14 +246,99 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SectionTitle(label: String) {
-    Text(
-        label.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = NexosPrimary,
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = androidx.compose.ui.unit.TextUnit.Unspecified
-    )
+private fun isSystemDark(): Boolean = androidx.compose.foundation.isSystemInDarkTheme()
+
+@Composable
+private fun SectionHeader(
+    kind: PandaSectionKind,
+    title: String,
+    subtitle: String,
+    isDark: Boolean = true
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        PandaSectionIcon(kind = kind, size = 38.dp, isDarkMode = isDark)
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeSegmentedControl(
+    current: ThemeMode,
+    onSelect: (ThemeMode) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        ThemeSegment(
+            label = "Light", icon = Icons.Rounded.LightMode,
+            selected = current == ThemeMode.Light,
+            onClick = { onSelect(ThemeMode.Light) },
+            modifier = Modifier.weight(1f)
+        )
+        ThemeSegment(
+            label = "System", icon = Icons.Rounded.PhoneAndroid,
+            selected = current == ThemeMode.System,
+            onClick = { onSelect(ThemeMode.System) },
+            modifier = Modifier.weight(1f)
+        )
+        ThemeSegment(
+            label = "Dark", icon = Icons.Rounded.DarkMode,
+            selected = current == ThemeMode.Dark,
+            onClick = { onSelect(ThemeMode.Dark) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun ThemeSegment(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val container = if (selected) MaterialTheme.colorScheme.primary
+    else androidx.compose.ui.graphics.Color.Transparent
+    val content = if (selected) MaterialTheme.colorScheme.onPrimary
+    else MaterialTheme.colorScheme.onSurfaceVariant
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(container)
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        AnimatedContent(
+            targetState = selected,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "theme-segment-anim"
+        ) { sel ->
+            Icon(icon, contentDescription = label, tint = content, modifier = Modifier.size(if (sel) 22.dp else 18.dp))
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = content,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
+    }
 }
 
 @Composable
@@ -240,7 +358,7 @@ private fun ProviderCard(
             .background(MaterialTheme.colorScheme.surface)
             .border(
                 width = if (isActive) 1.5.dp else 1.dp,
-                color = if (isActive) NexosPrimary else NexosBorder,
+                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable(onClick = onSelect)
@@ -248,31 +366,24 @@ private fun ProviderCard(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    info.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    info.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(info.displayName, style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+                Text(info.description, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (isActive) {
                 Box(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(NexosPrimarySoft),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Rounded.Check, contentDescription = "Active", tint = NexosPrimary, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Check, contentDescription = "Active",
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 }
             }
         }
-
         if (info.configurable) {
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
@@ -284,10 +395,10 @@ private fun ProviderCard(
                 visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = NexosBackground,
-                    unfocusedContainerColor = NexosBackground,
-                    focusedIndicatorColor = NexosPrimary,
-                    unfocusedIndicatorColor = NexosBorder
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                 )
             )
             Spacer(Modifier.height(8.dp))
@@ -295,7 +406,8 @@ private fun ProviderCard(
                 Text(
                     if (hasKey) "Key stored securely." else "No key stored yet.",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (hasKey) NexosPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (hasKey) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = onKeySave, enabled = draftKey.isNotBlank()) {
@@ -318,7 +430,7 @@ private fun NewsApiKeyCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(width = 1.dp, color = NexosBorder, shape = RoundedCornerShape(16.dp))
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         OutlinedTextField(
@@ -330,10 +442,10 @@ private fun NewsApiKeyCard(
             visualTransformation = PasswordVisualTransformation(),
             shape = RoundedCornerShape(10.dp),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = NexosBackground,
-                unfocusedContainerColor = NexosBackground,
-                focusedIndicatorColor = NexosPrimary,
-                unfocusedIndicatorColor = NexosBorder
+                focusedContainerColor = MaterialTheme.colorScheme.background,
+                unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
             )
         )
         Spacer(Modifier.height(8.dp))
@@ -341,7 +453,8 @@ private fun NewsApiKeyCard(
             Text(
                 if (hasKey) "Key stored securely." else "No key stored yet.",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (hasKey) NexosPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (hasKey) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onKeySave, enabled = draftKey.isNotBlank()) {
@@ -367,16 +480,18 @@ private fun ToggleRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(title, style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedTrackColor = NexosPrimary,
-                checkedThumbColor = NexosBackground,
-                uncheckedTrackColor = NexosBorder,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                uncheckedTrackColor = MaterialTheme.colorScheme.outline,
                 uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
