@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nexos.ai.presentation.ui.components.PandaConfetti
 import com.nexos.ai.presentation.ui.components.PandaMascot
 import com.nexos.ai.presentation.ui.components.PandaMotion
 import com.nexos.ai.util.DeepLinks
@@ -123,14 +124,19 @@ fun SuperAppHubScreen(
             HubTile("About & privacy", "How NexOS handles your data", Icons.Rounded.Info,
                 accent = Color(0xFF9C7BFF), accentBg = Color(0x339C7BFF)) { onOpenAbout() }
         )
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(padding).fillMaxSize()
-        ) {
-            items(tiles, key = { it.title }) { tile -> TileCard(tile = tile) }
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            // Background panda confetti — 20 random variants scattered evenly across the
+            // whole screen. Sits behind the tile grid; never receives touches.
+            PandaConfetti(count = 20, seed = 7, pandaSize = 26.dp)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(tiles, key = { it.title }) { tile -> TileCard(tile = tile) }
+            }
         }
     }
 

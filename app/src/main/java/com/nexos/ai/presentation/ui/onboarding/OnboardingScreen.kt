@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.nexos.ai.presentation.ui.components.PandaConfetti
 import com.nexos.ai.presentation.ui.components.PandaMascot
 import com.nexos.ai.presentation.ui.theme.NexosBackground
 import com.nexos.ai.presentation.ui.theme.NexosBorder
@@ -150,27 +151,32 @@ private fun ProgressDots(current: Int, total: Int) {
 
 @Composable
 private fun WelcomeStep() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        PandaMascot(size = 140.dp, hasLeaf = true)
-        Spacer(Modifier.height(28.dp))
-        Text(
-            "Meet your panda",
-            style = MaterialTheme.typography.displayMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            "An on-device AI layer that captures, transcribes, summarises, schedules, and books — all in one place. Forever free.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Panda confetti: 24 scattered tiny pandas behind the welcome hero, evenly spread
+        // (never clustered) and gently bobbing in place.
+        PandaConfetti(count = 24, seed = 42, pandaSize = 28.dp)
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            PandaMascot(size = 140.dp, hasLeaf = true)
+            Spacer(Modifier.height(28.dp))
+            Text(
+                "Meet your panda",
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "An on-device AI layer that captures, transcribes, summarises, schedules, and books — all in one place. Forever free.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
