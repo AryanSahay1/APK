@@ -173,20 +173,22 @@ fun NewsScreen(
 
 @Composable
 private fun NoKeyHero(onOpenSettings: () -> Unit) {
+    // Shown only if the user cleared the seeded GNews key — the bootstrap seed normally
+    // means this screen is reached.
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            "Add your NewsAPI key",
+            "Add a GNews key",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "NewsAPI offers a free developer tier (100 requests/day). " +
-                "Get a key at https://newsapi.org and paste it in Settings → News.",
+            "GNews offers a free developer tier (100 requests/day). " +
+                "Get a key at https://gnews.io and paste it in Settings → GNews API key.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

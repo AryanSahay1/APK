@@ -174,12 +174,13 @@ fun SettingsScreen(
                 }
             }
 
-            // --- API keys (news) ---
-            SectionHeader(PandaSectionKind.ApiKeys, "NEWS API KEY",
-                "Free at newsapi.org (100 req/day)")
+            // --- API keys (news / GNews) ---
+            SectionHeader(PandaSectionKind.ApiKeys, "GNEWS API KEY",
+                "Pre-seeded on first launch · free at gnews.io")
             Text(
-                "Stored encrypted on this device — never logged or transmitted to NexOS. " +
-                    "Header authentication only.",
+                "A free GNews developer key is already loaded so news works out-of-the-box. " +
+                    "Paste your own key here to use a higher tier or rotate. Keys stay encrypted " +
+                    "on this device and the value is masked in URLs before it reaches Logcat.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

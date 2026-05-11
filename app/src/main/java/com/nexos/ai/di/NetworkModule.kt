@@ -1,14 +1,17 @@
 package com.nexos.ai.di
 
 import com.nexos.ai.BuildConfig
-import com.nexos.ai.data.remote.api.NewsApi
+import com.nexos.ai.data.remote.api.GNewsApi
 import com.nexos.ai.data.remote.api.OpenMeteoGeocodingApi
 import com.nexos.ai.data.remote.api.WeatherApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -34,29 +37,13 @@ object NetworkModule {
         .writeTimeout(15, TimeUnit.SECONDS)
         .apply {
             if (BuildConfig.DEBUG) {
-                val logger = HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BASIC
-                    redactHeader("Authorization")
-                    redactHeader("x-api-key")
-                    redactHeader("X-Api-Key")
-                    redactHeader("x-goog-api-key")
-                }
-                addInterceptor(logger)
+                // Our own redacting logger replaces HttpLoggingInterceptor.BASIC entirely
+                // so query params like ?apikey=… never reach Logcat. SKILL-1.md pins us at
+                // OkHttp 4.11.0, which predates HttpLoggingInterceptor.redactQueryParams.
+                addInterceptor(RedactingLogger(setOf("apikey", "api_key", "key", "token", "access_token")))
             }
         }
         .build()
-
-    @Provides
-    @Singleton
-    fun provideNewsRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
-        .baseUrl(NewsApi.BASE_URL)
-        .client(client)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    @Provides
-    @Singleton
-    fun provideNewsApi(retrofit: Retrofit): NewsApi = retrofit.create(NewsApi::class.java)
 
     @Provides
     @Singleton
@@ -85,4 +72,65 @@ object NetworkModule {
     @Singleton
     fun provideGeocodingApi(@javax.inject.Named("weatherGeocoding") retrofit: Retrofit): OpenMeteoGeocodingApi =
         retrofit.create(OpenMeteoGeocodingApi::class.java)
+
+    @Provides
+    @Singleton
+    @javax.inject.Named("gnews")
+    fun provideGNewsRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(GNewsApi.BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideGNewsApi(@javax.inject.Named("gnews") retrofit: Retrofit): GNewsApi =
+        retrofit.create(GNewsApi::class.java)
+}
+
+/**
+ * Custom request/response logger that redacts query-parameter values for the names in
+ * [sensitiveQueryParams] before writing anything to Logcat.
+ *
+ * Logs:
+ *   --> GET https://gnews.io/api/v4/top-headlines?apikey=***&category=technology (28ms 320b)
+ *
+ * Always passes the original (un-redacted) request through to the network, so the actual
+ * API call works correctly. Only the log line is sanitised.
+ */
+class RedactingLogger(
+    private val sensitiveQueryParams: Set<String>,
+    private val tag: String = "NexOS/Http"
+) : Interceptor {
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val start = System.nanoTime()
+        val response = try {
+            chain.proceed(request)
+        } catch (t: Throwable) {
+            android.util.Log.w(tag, "← ${request.method} ${redact(request.url)} FAILED: ${t.message}")
+            throw t
+        }
+        val durationMs = (System.nanoTime() - start) / 1_000_000
+        val length = response.body?.contentLength()?.takeIf { it > 0 }?.let { "${it}b" } ?: "?b"
+        android.util.Log.d(
+            tag,
+            "${request.method} ${redact(request.url)} -> ${response.code} ($durationMs ms, $length)"
+        )
+        return response
+    }
+
+    private fun redact(url: HttpUrl): String {
+        if (url.queryParameterNames.none { name ->
+                sensitiveQueryParams.any { it.equals(name, ignoreCase = true) }
+            }) return url.toString()
+        val builder = url.newBuilder().query(null)
+        url.queryParameterNames.forEach { name ->
+            val raw = url.queryParameter(name).orEmpty()
+            val out = if (sensitiveQueryParams.any { it.equals(name, ignoreCase = true) }) "***" else raw
+            builder.addQueryParameter(name, out)
+        }
+        return builder.build().toString()
+    }
 }

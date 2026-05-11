@@ -4,8 +4,10 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.nexos.ai.ai.ApiKeySeeder
 import com.nexos.ai.util.Constants
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 /**
  * Application root. Creates notification channels on first launch and wires Hilt.
@@ -16,9 +18,14 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class NexosApp : Application() {
 
+    @Inject lateinit var apiKeySeeder: ApiKeySeeder
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
+        // Seeds bootstrap API keys (currently: GNews) so the user gets a working app on
+        // first launch with no configuration. Cheap (encrypted-prefs writes) and idempotent.
+        runCatching { apiKeySeeder.seedIfNeeded() }
     }
 
     private fun createNotificationChannels() {

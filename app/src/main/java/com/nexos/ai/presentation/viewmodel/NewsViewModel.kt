@@ -34,9 +34,7 @@ class NewsViewModel @Inject constructor(
     private val _state = MutableStateFlow(NewsUiState(hasApiKey = newsRepository.hasApiKey()))
     val state: StateFlow<NewsUiState> = _state.asStateFlow()
 
-    val categories: List<String> = listOf(
-        "general", "technology", "business", "science", "sports", "health", "entertainment"
-    )
+    val categories: List<String> = com.nexos.ai.data.remote.api.GNewsApi.CATEGORIES
 
     init {
         if (_state.value.hasApiKey) refresh()
