@@ -77,6 +77,35 @@ class AlarmsViewModel @Inject constructor(
         viewModelScope.launch { repository.toggle(alarm, enabled) }
     }
 
+    /**
+     * Schedule a clock-style alarm: a specific hour/minute, optionally repeating on a
+     * bitmask of weekdays. For a one-shot alarm (no recur), the first fire is the next
+     * occurrence of that time (today if still in the future, otherwise tomorrow).
+     */
+    fun setClockAlarm(label: String, hour: Int, minute: Int, recurMask: Int) {
+        viewModelScope.launch {
+            val cal = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, hour)
+                set(java.util.Calendar.MINUTE, minute)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+                if (recurMask == 0 && timeInMillis <= System.currentTimeMillis()) {
+                    add(java.util.Calendar.DAY_OF_MONTH, 1)
+                }
+            }
+            val cleaned = label.ifBlank { "Alarm" }
+            repository.add(
+                Alarm(
+                    title = cleaned,
+                    rawRequest = "%s at %02d:%02d".format(cleaned, hour, minute),
+                    triggerAt = cal.timeInMillis,
+                    isEnabled = true,
+                    recurDaysMask = recurMask
+                )
+            )
+        }
+    }
+
     fun delete(alarm: Alarm) {
         viewModelScope.launch { repository.delete(alarm) }
     }

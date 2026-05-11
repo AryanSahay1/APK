@@ -24,7 +24,16 @@ data class Alarm(
     val triggerAt: Long,
     val isEnabled: Boolean = true,
     val isFired: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    /**
+     * Bitmask of weekdays this alarm repeats on, using Calendar.DAY_OF_WEEK ordinals:
+     *   Sunday=1 → bit 0, Monday=2 → bit 1, …, Saturday=7 → bit 6.
+     * 0 means "fire once and stop" (the existing natural-language reminder behaviour).
+     */
+    val recurDaysMask: Int = 0
 ) {
     val pendingIntentRequestCode: Int get() = (id and 0x7fffffff).toInt()
+
+    fun repeats(): Boolean = recurDaysMask != 0
+    fun recurDays(): Set<Int> = (1..7).filter { recurDaysMask and (1 shl (it - 1)) != 0 }.toSet()
 }

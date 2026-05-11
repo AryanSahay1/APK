@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.nexos.ai.MainActivity
 import com.nexos.ai.R
 import com.nexos.ai.data.repository.AlarmRepository
+import com.nexos.ai.service.AlarmScheduler
 import com.nexos.ai.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +37,7 @@ import javax.inject.Inject
 class AlarmReceiver : BroadcastReceiver() {
 
     @Inject lateinit var alarmRepository: AlarmRepository
+    @Inject lateinit var alarmScheduler: AlarmScheduler
 
     private val tag = "NexOS/AlarmReceiver"
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -58,9 +60,15 @@ class AlarmReceiver : BroadcastReceiver() {
                 val pending = goAsync()
                 scope.launch {
                     try {
-                        alarmRepository.markFired(alarmId)
+                        val saved = runCatching { alarmRepository.getById(alarmId) }.getOrNull()
+                        if (saved != null && saved.repeats()) {
+                            // Recurring alarm: re-arm for the next occurrence; do NOT flip isFired.
+                            alarmScheduler.schedule(saved)
+                        } else {
+                            alarmRepository.markFired(alarmId)
+                        }
                     } catch (t: Throwable) {
-                        Log.e(tag, "Failed to mark alarm fired", t)
+                        Log.e(tag, "Failed to handle alarm post-fire bookkeeping", t)
                     } finally {
                         pending.finish()
                     }

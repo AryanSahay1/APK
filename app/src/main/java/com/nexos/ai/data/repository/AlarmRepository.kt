@@ -43,6 +43,10 @@ class AlarmRepository @Inject constructor(
         alarmDao.markFired(id)
     }
 
+    suspend fun getById(id: Long): Alarm? = withContext(Dispatchers.IO) {
+        alarmDao.getById(id)
+    }
+
     /**
      * Re-schedule every pending alarm. Called from BootReceiver and from
      * the Settings exact-alarm toggle so user reminders survive reboots / permission changes.

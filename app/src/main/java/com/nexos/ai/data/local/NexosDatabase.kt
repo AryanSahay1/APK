@@ -11,7 +11,7 @@ import com.nexos.ai.data.local.entity.Note
 
 @Database(
     entities = [Note::class, Alarm::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class NexosDatabase : RoomDatabase() {
@@ -40,6 +40,17 @@ abstract class NexosDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+            }
+        }
+
+        /**
+         * v2 → v3: add the recurDaysMask column to support the new in-built alarm-clock UI
+         * (time + days-of-week chips). Default 0 = "fire once and stop", matching existing
+         * natural-language reminder behaviour.
+         */
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE alarms ADD COLUMN recurDaysMask INTEGER NOT NULL DEFAULT 0")
             }
         }
     }
