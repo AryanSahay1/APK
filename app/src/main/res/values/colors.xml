@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nexos_background">#07070F</color>
+    <color name="nexos_surface">#0D0D1A</color>
+    <color name="nexos_primary">#00E676</color>
+    <color name="nexos_on_surface">#E0E0E0</color>
+    <color name="nexos_muted">#666666</color>
+    <color name="nexos_transparent">#00000000</color>
+</resources>
