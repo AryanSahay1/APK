@@ -6,6 +6,23 @@
 
 **Licensed under [Apache 2.0](LICENSE). Free, forever. See [UPDATES_POLICY.md](UPDATES_POLICY.md) and [PRIVACY.md](PRIVACY.md).**
 
+## ⬇ Download the APK
+
+Pre-built, signed APKs are hosted on the [`apk`](https://github.com/AryanSahay1/APK/tree/apk) branch. Click to download:
+
+| Build | Version | Size | Direct download |
+|---|---|---|---|
+| **Release** (recommended) | v1.1.2 | 54 MB | **[NexOS-latest-release.apk](https://github.com/AryanSahay1/APK/raw/apk/NexOS-latest-release.apk)** |
+| Debug | v1.1.2 | 60 MB | **[NexOS-latest-debug.apk](https://github.com/AryanSahay1/APK/raw/apk/NexOS-latest-debug.apk)** |
+
+```bash
+adb install NexOS-latest-release.apk
+```
+
+Both APKs work out-of-the-box — the GNews and OpenWeather API keys are pre-seeded, encrypted with the Android Keystore, and never logged. Install on any Android 8.0 (API 26) or newer device.
+
+[All releases →](https://github.com/AryanSahay1/APK/tree/apk#all-nexos-releases)
+
 NexOS is not a chatbot wrapper. It's a system that sits between the user and every
 other app on their phone: a floating button captures the screen, ML Kit extracts the
 text, an optional user-supplied AI key turns it into a structured note, and Room
