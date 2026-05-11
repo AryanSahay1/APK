@@ -72,8 +72,12 @@ fun NoteDetailScreen(
     val context = LocalContext.current
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
+    val current = note
     Scaffold(
-        containerColor = NexosBackground,
+        // Default container is the theme background; if the user picked a panda background
+        // for this note, we render the background Canvas behind everything via a wrapping
+        // Box below. Either way, Scaffold's own container stays transparent on those rows.
+        containerColor = if ((current?.backgroundId ?: 0) > 0) androidx.compose.ui.graphics.Color.Transparent else NexosBackground,
         topBar = {
             TopAppBar(
                 title = { Text("Note", style = MaterialTheme.typography.titleLarge) },
@@ -116,14 +120,24 @@ fun NoteDetailScreen(
             )
         }
     ) { padding ->
+        Box(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()
+        ) {
+            // Background sits behind the scrollable content. backgroundId == 0 means the
+            // user never chose a theme, so we let Scaffold's default container show through.
+            if ((current?.backgroundId ?: 0) > 0) {
+                com.nexos.ai.presentation.ui.components.PandaBackgroundCanvas(
+                    backgroundId = current!!.backgroundId,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            val current = note
             if (current == null) {
                 Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                     Text(
@@ -180,11 +194,25 @@ fun NoteDetailScreen(
                 }
 
                 Spacer(Modifier.height(20.dp))
-                Text(
-                    current.content.ifBlank { "(no content)" },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                if (current.content.isBlank()) {
+                    Text(
+                        "(no content)",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    com.nexos.ai.presentation.ui.components.MarkdownBody(
+                        markdown = current.content,
+                        bodyFontSizeSp = current.bodyTextSizeSp.coerceIn(12, 28).let {
+                            if (it <= 0) 16 else it
+                        },
+                        textAlign = when (current.textAlignment) {
+                            1 -> androidx.compose.ui.text.style.TextAlign.Center
+                            2 -> androidx.compose.ui.text.style.TextAlign.End
+                            else -> androidx.compose.ui.text.style.TextAlign.Start
+                        }
+                    )
+                }
 
                 if (current.tagList.isNotEmpty()) {
                     Spacer(Modifier.height(20.dp))
@@ -259,6 +287,7 @@ fun NoteDetailScreen(
                 Spacer(Modifier.height(48.dp))
             }
         }
+        } // closes the wrapping Box that hosts the optional PandaBackgroundCanvas
     }
 
     if (showDeleteConfirm) {
