@@ -20,8 +20,13 @@ NexOS ships with a bootstrap GNews developer-tier API key so the News tab works 
 this key remains the property of GNews and is subject to GNews's rate limits (100 req/day).
 Users can rotate or replace the key from Settings → GNews API key.
 
-Weather data is sourced from Open-Meteo (https://open-meteo.com), licensed under CC-BY 4.0.
-No API key is required. NexOS attributes Open-Meteo on the Weather screen as required by
-the licence.
+Weather data is sourced from two providers:
+  - OpenWeather (https://openweathermap.org) when a developer key is configured.
+    NexOS ships with a bootstrap free-tier OpenWeather key so the Weather screen works
+    out-of-the-box. The key is the property of OpenWeather and is subject to OpenWeather's
+    free-tier rate limits (60 requests/minute). Users can rotate or replace the key in
+    Settings → Weather provider.
+  - Open-Meteo (https://open-meteo.com), licensed under CC-BY 4.0. Used as the no-key
+    fallback. NexOS attributes Open-Meteo on the Weather screen as required by the licence.
 
 Uber, Rapido, Zomato, and Swiggy are trademarks of their respective owners. NexOS uses only their publicly documented deep-link URI schemes and is not affiliated with any of them.

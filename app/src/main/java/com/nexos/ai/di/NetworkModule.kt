@@ -3,6 +3,7 @@ package com.nexos.ai.di
 import com.nexos.ai.BuildConfig
 import com.nexos.ai.data.remote.api.GNewsApi
 import com.nexos.ai.data.remote.api.OpenMeteoGeocodingApi
+import com.nexos.ai.data.remote.api.OpenWeatherApi
 import com.nexos.ai.data.remote.api.WeatherApi
 import dagger.Module
 import dagger.Provides
@@ -40,7 +41,7 @@ object NetworkModule {
                 // Our own redacting logger replaces HttpLoggingInterceptor.BASIC entirely
                 // so query params like ?apikey=… never reach Logcat. SKILL-1.md pins us at
                 // OkHttp 4.11.0, which predates HttpLoggingInterceptor.redactQueryParams.
-                addInterceptor(RedactingLogger(setOf("apikey", "api_key", "key", "token", "access_token")))
+                addInterceptor(RedactingLogger(setOf("apikey", "api_key", "key", "appid", "token", "access_token")))
             }
         }
         .build()
@@ -86,6 +87,20 @@ object NetworkModule {
     @Singleton
     fun provideGNewsApi(@javax.inject.Named("gnews") retrofit: Retrofit): GNewsApi =
         retrofit.create(GNewsApi::class.java)
+
+    @Provides
+    @Singleton
+    @javax.inject.Named("openweather")
+    fun provideOpenWeatherRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(OpenWeatherApi.BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideOpenWeatherApi(@javax.inject.Named("openweather") retrofit: Retrofit): OpenWeatherApi =
+        retrofit.create(OpenWeatherApi::class.java)
 }
 
 /**

@@ -52,11 +52,19 @@ class ApiKeySeeder @Inject constructor(
 
     private val SEEDS: List<Seed> = listOf(
         // GNews bootstrap key (user-supplied, gnews.io developer tier — 100 requests/day).
-        // This is stored encrypted in the Android Keystore; rotate freely from Settings.
+        // Stored encrypted in the Android Keystore; rotate freely from Settings.
         Seed(
             slot = Constants.PROVIDER_NEWS_API,
             value = "5c33bb47e30a76d50029a00b7a28adeb",
             label = "GNews developer key"
+        ),
+        // OpenWeather bootstrap key (user-supplied, free tier — 60 requests/minute).
+        // Powers the in-app Weather screen out-of-the-box. When this slot is empty the
+        // WeatherRepository transparently falls back to Open-Meteo (no key, CC-BY).
+        Seed(
+            slot = Constants.PROVIDER_OPENWEATHER,
+            value = "ccdd42ee20e445228e1120122261105",
+            label = "OpenWeather free-tier key"
         )
     )
 }

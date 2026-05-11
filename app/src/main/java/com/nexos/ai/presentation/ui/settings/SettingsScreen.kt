@@ -184,13 +184,35 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            NewsApiKeyCard(
+            ApiKeyCard(
+                placeholder = "Paste GNews API key",
                 hasKey = state.keyStatuses["newsapi"] == true,
                 draftKey = keyDrafts["newsapi"].orEmpty(),
                 onKeyChange = { keyDrafts["newsapi"] = it },
                 onKeySave = {
                     viewModel.setApiKey("newsapi", keyDrafts["newsapi"].orEmpty())
                     keyDrafts["newsapi"] = ""
+                }
+            )
+
+            // --- Weather provider ---
+            SectionHeader(PandaSectionKind.News, "WEATHER PROVIDER",
+                "OpenWeather (pre-seeded) → falls back to Open-Meteo")
+            Text(
+                "Forecast uses OpenWeather when a key is set, Open-Meteo otherwise. " +
+                    "OpenWeather's free tier gives 60 req/min and current-weather accuracy at the named city. " +
+                    "Clear the key to use the no-key Open-Meteo path.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            ApiKeyCard(
+                placeholder = "Paste OpenWeather API key",
+                hasKey = state.keyStatuses["openweather"] == true,
+                draftKey = keyDrafts["openweather"].orEmpty(),
+                onKeyChange = { keyDrafts["openweather"] = it },
+                onKeySave = {
+                    viewModel.setApiKey("openweather", keyDrafts["openweather"].orEmpty())
+                    keyDrafts["openweather"] = ""
                 }
             )
 
@@ -420,7 +442,8 @@ private fun ProviderCard(
 }
 
 @Composable
-private fun NewsApiKeyCard(
+private fun ApiKeyCard(
+    placeholder: String,
     hasKey: Boolean,
     draftKey: String,
     onKeyChange: (String) -> Unit,
@@ -438,7 +461,7 @@ private fun NewsApiKeyCard(
             value = draftKey,
             onValueChange = onKeyChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(if (hasKey) "Key stored — replace to update" else "Paste NewsAPI key") },
+            placeholder = { Text(if (hasKey) "Key stored — replace to update" else placeholder) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             shape = RoundedCornerShape(10.dp),

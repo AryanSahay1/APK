@@ -245,10 +245,10 @@ private fun WeatherContent(
         )
     }
 
-    // Attribution — Open-Meteo CC-BY 4.0
+    // Attribution — required by Open-Meteo (CC-BY 4.0); friendly disclosure for OpenWeather.
     Spacer(Modifier.height(16.dp))
     Text(
-        "Weather data by Open-Meteo (CC-BY 4.0).",
+        "Weather data by OpenWeather + Open-Meteo (CC-BY 4.0 fallback).",
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )

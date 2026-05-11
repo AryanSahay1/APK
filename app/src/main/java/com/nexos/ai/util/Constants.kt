@@ -51,6 +51,7 @@ object Constants {
 
     // Non-AI integrations (their keys live in the same SecureStorage)
     const val PROVIDER_NEWS_API = "newsapi"
+    const val PROVIDER_OPENWEATHER = "openweather"
 
     // Misc
     const val AI_REQUEST_TIMEOUT_MS = 30_000L
