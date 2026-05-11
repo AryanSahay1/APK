@@ -10,12 +10,18 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.nexos.ai.data.repository.ThemeMode
 
+// M3 Expressive (2025) tonal palettes: primary / secondary / tertiary all populated with
+// matching `container` + `onContainer` roles, so MaterialTheme.colorScheme.*Container reads
+// give intentional values (the warm peach tertiary for accent surfaces, the blue secondary
+// for informational chips). Components stop falling back to surfaceVariant for tinted
+// backgrounds — a key M3 Expressive correctness win.
 private val NexosDarkScheme = darkColorScheme(
     primary = NexosPrimary,
     onPrimary = NexosBackground,
@@ -23,14 +29,22 @@ private val NexosDarkScheme = darkColorScheme(
     onPrimaryContainer = NexosPrimary,
     secondary = NexosInfo,
     onSecondary = NexosBackground,
+    secondaryContainer = Color(0x334DA6FF),
+    onSecondaryContainer = NexosInfo,
+    tertiary = NexosTertiary,
+    onTertiary = NexosOnTertiary,
+    tertiaryContainer = NexosTertiaryContainer,
+    onTertiaryContainer = NexosOnTertiaryContainer,
     background = NexosBackground,
     onBackground = NexosOnSurface,
     surface = NexosSurface,
     onSurface = NexosOnSurface,
     surfaceVariant = NexosSurfaceElevated,
     onSurfaceVariant = NexosOnSurfaceMuted,
+    surfaceTint = NexosPrimary,
     outline = NexosBorder,
     outlineVariant = NexosBorder,
+    scrim = Color(0xCC000000),
     error = NexosError,
     onError = NexosBackground
 )
@@ -42,22 +56,34 @@ private val NexosLightScheme = lightColorScheme(
     onPrimaryContainer = NexosPrimaryLight,
     secondary = NexosInfo,
     onSecondary = NexosSurfaceLight,
+    secondaryContainer = Color(0x224DA6FF),
+    onSecondaryContainer = NexosInfo,
+    tertiary = NexosTertiaryLight,
+    onTertiary = NexosOnTertiaryLight,
+    tertiaryContainer = NexosTertiaryContainerLight,
+    onTertiaryContainer = NexosOnTertiaryContainerLight,
     background = NexosBackgroundLight,
     onBackground = NexosOnSurfaceLight,
     surface = NexosSurfaceLight,
     onSurface = NexosOnSurfaceLight,
     surfaceVariant = NexosSurfaceElevatedLight,
     onSurfaceVariant = NexosOnSurfaceMutedLight,
+    surfaceTint = NexosPrimaryLight,
     outline = NexosBorderLight,
     outlineVariant = NexosBorderLight,
+    scrim = Color(0xAA000000),
     error = NexosErrorLight,
     onError = NexosSurfaceLight
 )
 
+// M3 Expressive shape scale (per SKILL__2_.md §5):
+//   extraSmall 4, small 8, medium 12, large 16, extraLarge 28.
+// We round slightly looser than spec on `large` (20 dp instead of 16) because the panda
+// mascot's circular silhouette pairs better with softer card edges.
 val NexosShapes = Shapes(
-    extraSmall = RoundedCornerShape(6.dp),
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(14.dp),
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
     large = RoundedCornerShape(20.dp),
     extraLarge = RoundedCornerShape(28.dp)
 )

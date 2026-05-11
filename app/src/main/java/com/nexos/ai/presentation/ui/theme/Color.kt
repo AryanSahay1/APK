@@ -30,3 +30,16 @@ val NexosBorderLight = Color(0xFFE2E2DC)
 val NexosPrimaryLight = Color(0xFF00B85F) // slightly darkened for AA on light bg
 val NexosPrimarySoftLight = Color(0x2200B85F)
 val NexosErrorLight = Color(0xFFD32F2F)
+
+// ----- M3 Expressive tertiary palette (v1.4) -----
+// A warm peach used for accent surfaces (the weather strip's emoji halo, panda mascot
+// highlights, marketing chips). Pairs with the green primary without competing for the eye.
+val NexosTertiary = Color(0xFFFFAB91)             // soft peach, dark mode
+val NexosOnTertiary = Color(0xFF1F1A18)
+val NexosTertiaryContainer = Color(0x33FFAB91)
+val NexosOnTertiaryContainer = Color(0xFFFFD9CC)
+
+val NexosTertiaryLight = Color(0xFFD84315)        // burnt orange, light mode
+val NexosOnTertiaryLight = Color(0xFFFFFFFF)
+val NexosTertiaryContainerLight = Color(0xFFFFCCBC)
+val NexosOnTertiaryContainerLight = Color(0xFF3E1B0A)
