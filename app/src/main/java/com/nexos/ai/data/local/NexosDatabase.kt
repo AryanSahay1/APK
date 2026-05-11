@@ -11,7 +11,7 @@ import com.nexos.ai.data.local.entity.Note
 
 @Database(
     entities = [Note::class, Alarm::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class NexosDatabase : RoomDatabase() {
@@ -65,6 +65,19 @@ abstract class NexosDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE notes ADD COLUMN notebookId INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE notes ADD COLUMN coverDesignJson TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE notes ADD COLUMN isNotebookCompleted INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /**
+         * v4 → v5: per-note background + simple body presentation settings introduced for
+         * the Vivo-style notepad redesign in v1.5. All defaults are no-ops; pre-v5 notes
+         * render exactly as before (backgroundId=0 means "no background").
+         */
+        val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN backgroundId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE notes ADD COLUMN textAlignment INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE notes ADD COLUMN bodyTextSizeSp INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

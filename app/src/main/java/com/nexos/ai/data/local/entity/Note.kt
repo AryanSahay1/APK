@@ -42,7 +42,23 @@ data class Note(
     /** JSON-encoded cover + back page design (background, title, motif). */
     val coverDesignJson: String = "",
     /** True once the user has marked the notebook 'finished' — locks editing of pages. */
-    val isNotebookCompleted: Boolean = false
+    val isNotebookCompleted: Boolean = false,
+    /**
+     * Identifier of the panda-themed background applied to this note (0 = no background,
+     * uses the default theme surface). See [com.nexos.ai.presentation.ui.components
+     * .PandaBackgrounds] for the catalogue of 1..30.
+     */
+    val backgroundId: Int = 0,
+    /**
+     * Text alignment of the note body: 0 = start, 1 = center, 2 = end. Applied uniformly
+     * across the body — paragraph-level alignment is out of scope.
+     */
+    val textAlignment: Int = 0,
+    /**
+     * Default body text size in `sp`. Range clamped to 12..28 in the editor. Falls back
+     * to MaterialTheme.typography.bodyLarge.fontSize when 0.
+     */
+    val bodyTextSizeSp: Int = 0
 ) {
     val tagList: List<String>
         get() = if (tags.isBlank()) emptyList() else tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }

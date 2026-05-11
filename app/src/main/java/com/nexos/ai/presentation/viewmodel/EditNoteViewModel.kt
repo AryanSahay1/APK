@@ -22,7 +22,13 @@ data class EditNoteState(
     val error: String? = null,
     val attachments: List<com.nexos.ai.domain.model.NoteAttachment> = emptyList(),
     val isRecordingAudio: Boolean = false,
-    val isAttachingLocation: Boolean = false
+    val isAttachingLocation: Boolean = false,
+    val backgroundId: Int = 0,
+    val textAlignment: Int = 0,
+    val bodyTextSizeSp: Int = 16,
+    val canUndo: Boolean = false,
+    val canRedo: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis()
 )
 
 @HiltViewModel
@@ -40,6 +46,13 @@ class EditNoteViewModel @Inject constructor(
     private val _state = MutableStateFlow(EditNoteState(isLoading = noteId > 0, isExistingNote = noteId > 0))
     val state: StateFlow<EditNoteState> = _state.asStateFlow()
 
+    // Single-undo + single-redo stacks for the body text. Cheap insurance against the
+    // formatting toolbar's bulk insertions — the user can step back one transformation at
+    // a time. Cap depth at 50 to keep memory bounded on huge notes.
+    private val undoStack = ArrayDeque<String>()
+    private val redoStack = ArrayDeque<String>()
+    private val historyCap = 50
+
     init {
         if (noteId > 0) {
             viewModelScope.launch {
@@ -53,11 +66,72 @@ class EditNoteViewModel @Inject constructor(
                         isExistingNote = note != null,
                         attachments = note?.attachmentsJson?.let {
                             com.nexos.ai.data.local.NoteAttachmentCodec.decode(it)
-                        }.orEmpty()
+                        }.orEmpty(),
+                        backgroundId = note?.backgroundId ?: 0,
+                        textAlignment = note?.textAlignment ?: 0,
+                        bodyTextSizeSp = (note?.bodyTextSizeSp ?: 0).let { if (it <= 0) 16 else it },
+                        createdAt = note?.timestamp ?: System.currentTimeMillis()
                     )
                 }
             }
         }
+    }
+
+    fun setBackground(id: Int) { _state.update { it.copy(backgroundId = id) } }
+    fun setAlignment(a: Int) { _state.update { it.copy(textAlignment = a.coerceIn(0, 2)) } }
+    fun setBodyTextSize(spValue: Int) {
+        _state.update { it.copy(bodyTextSizeSp = spValue.coerceIn(12, 28)) }
+    }
+
+    /**
+     * Push the *previous* body onto the undo stack and apply the new one. The caller passes
+     * the post-edit string; the previous value is whatever is currently in state. This is the
+     * single mutation entry-point used by both the text field and the formatting toolbar.
+     */
+    fun onContentChange(value: String) {
+        val previous = _state.value.content
+        if (previous == value) return
+        undoStack.addLast(previous)
+        if (undoStack.size > historyCap) undoStack.removeFirst()
+        // Any fresh edit invalidates the redo stack — standard editor behaviour.
+        redoStack.clear()
+        _state.update {
+            it.copy(content = value, canUndo = undoStack.isNotEmpty(), canRedo = false)
+        }
+    }
+
+    fun undo() {
+        val previous = undoStack.removeLastOrNull() ?: return
+        redoStack.addLast(_state.value.content)
+        _state.update {
+            it.copy(
+                content = previous,
+                canUndo = undoStack.isNotEmpty(),
+                canRedo = redoStack.isNotEmpty()
+            )
+        }
+    }
+
+    fun redo() {
+        val next = redoStack.removeLastOrNull() ?: return
+        undoStack.addLast(_state.value.content)
+        _state.update {
+            it.copy(
+                content = next,
+                canUndo = undoStack.isNotEmpty(),
+                canRedo = redoStack.isNotEmpty()
+            )
+        }
+    }
+
+    /** Insert a doodle (PNG file path) as an image attachment without leaving the editor. */
+    fun addDoodleAttachment(absolutePath: String) {
+        val att = com.nexos.ai.domain.model.NoteAttachment.Image(
+            id = "doodle-${System.currentTimeMillis()}",
+            uri = "file://$absolutePath",
+            mimeType = "image/png"
+        )
+        _state.update { it.copy(attachments = it.attachments + att) }
     }
 
     fun addImageAttachment(uri: String, mimeType: String) {
@@ -137,10 +211,6 @@ class EditNoteViewModel @Inject constructor(
         _state.update { it.copy(title = value) }
     }
 
-    fun onContentChange(value: String) {
-        _state.update { it.copy(content = value) }
-    }
-
     fun onTagsChange(value: String) {
         _state.update { it.copy(tags = value) }
     }
@@ -161,7 +231,10 @@ class EditNoteViewModel @Inject constructor(
                         title = current.title.ifBlank { "Untitled note" },
                         content = current.content,
                         tags = current.tags,
-                        attachmentsJson = attachmentsJson
+                        attachmentsJson = attachmentsJson,
+                        backgroundId = current.backgroundId,
+                        textAlignment = current.textAlignment,
+                        bodyTextSizeSp = current.bodyTextSizeSp
                     )
                 )
                 onSaved(noteId)
@@ -174,10 +247,18 @@ class EditNoteViewModel @Inject constructor(
                     onSaved(-1L)
                     return@launch
                 }
-                // If we have attachments, write them back via update — the manual save path
-                // doesn't carry them through.
-                if (current.attachments.isNotEmpty()) {
-                    repository.update(saved.copy(attachmentsJson = attachmentsJson))
+                // Manual-save path can't carry the v5 fields; write them back via update.
+                val needsExtras = current.attachments.isNotEmpty() ||
+                    current.backgroundId > 0 ||
+                    current.textAlignment != 0 ||
+                    current.bodyTextSizeSp != 16
+                if (needsExtras) {
+                    repository.update(saved.copy(
+                        attachmentsJson = attachmentsJson,
+                        backgroundId = current.backgroundId,
+                        textAlignment = current.textAlignment,
+                        bodyTextSizeSp = current.bodyTextSizeSp
+                    ))
                 }
                 onSaved(saved.id)
             }
