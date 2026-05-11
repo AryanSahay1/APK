@@ -24,6 +24,7 @@ object NexosPreferences {
     val SHOW_FLOATING_BUTTON = booleanPreferencesKey("show_floating_button")
     val FLOATING_BUTTON_Y = stringPreferencesKey("floating_button_y")
     val THEME_MODE = stringPreferencesKey("theme_mode")
+    val FONT_CHOICE = stringPreferencesKey("font_choice")
     val LAST_UBER_DESTINATION = stringPreferencesKey("last_uber_destination")
     val LAST_RAPIDO_DESTINATION = stringPreferencesKey("last_rapido_destination")
     val RECENT_SWIGGY_QUERIES = stringPreferencesKey("recent_swiggy_queries")
@@ -51,6 +52,9 @@ class SettingsRepository @Inject constructor(
     private val store = context.settingsDataStore
 
     val themeMode: Flow<ThemeMode> = store.data.map { ThemeMode.fromKey(it[NexosPreferences.THEME_MODE]) }
+    val fontChoiceKey: Flow<String> = store.data.map {
+        it[NexosPreferences.FONT_CHOICE] ?: com.nexos.ai.presentation.ui.theme.FontChoice.DEFAULT_KEY
+    }
     val aiProvider: Flow<String> = store.data.map { it[NexosPreferences.AI_PROVIDER] ?: Constants.PROVIDER_NONE }
     val autoSummarize: Flow<Boolean> = store.data.map { it[NexosPreferences.AUTO_SUMMARIZE] ?: true }
     val autoSave: Flow<Boolean> = store.data.map { it[NexosPreferences.AUTO_SAVE] ?: true }
@@ -60,6 +64,10 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setThemeMode(mode: ThemeMode) {
         store.edit { it[NexosPreferences.THEME_MODE] = mode.key }
+    }
+
+    suspend fun setFontChoice(choice: com.nexos.ai.presentation.ui.theme.FontChoice) {
+        store.edit { it[NexosPreferences.FONT_CHOICE] = choice.key }
     }
 
     suspend fun setAiProvider(provider: String) {

@@ -119,6 +119,10 @@ fun NoteListScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            // Live weather strip — pinned above everything per the user's spec
+            // "always showing the real time update above panda on the main page".
+            com.nexos.ai.presentation.ui.components.WeatherStrip()
+
             OutlinedTextField(
                 value = query,
                 onValueChange = viewModel::onQueryChanged,

@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexos.ai.data.repository.SettingsRepository
 import com.nexos.ai.data.repository.ThemeMode
+import com.nexos.ai.presentation.ui.theme.FontChoice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +29,15 @@ class ThemeViewModel @Inject constructor(
         initialValue = ThemeMode.System
     )
 
+    val fontChoice: StateFlow<FontChoice> = settings.fontChoiceKey
+        .map { FontChoice.fromKey(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, FontChoice.Inter)
+
     fun setMode(value: ThemeMode) {
         viewModelScope.launch { settings.setThemeMode(value) }
+    }
+
+    fun setFont(value: FontChoice) {
+        viewModelScope.launch { settings.setFontChoice(value) }
     }
 }

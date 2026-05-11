@@ -72,7 +72,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeVm: ThemeViewModel = hiltViewModel()
             val mode by themeVm.mode.collectAsState(initial = ThemeMode.System)
-            NexosTheme(mode = mode) {
+            val font by themeVm.fontChoice.collectAsState(initial = com.nexos.ai.presentation.ui.theme.FontChoice.Inter)
+            NexosTheme(mode = mode, fontChoice = font) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

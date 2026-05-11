@@ -9,6 +9,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -71,6 +72,7 @@ val NexosShapes = Shapes(
 @Composable
 fun NexosTheme(
     mode: ThemeMode = ThemeMode.System,
+    fontChoice: FontChoice = FontChoice.Inter,
     content: @Composable () -> Unit
 ) {
     val systemDark = isSystemInDarkTheme()
@@ -80,6 +82,12 @@ fun NexosTheme(
         ThemeMode.Light -> false
     }
     val colorScheme = if (useDark) NexosDarkScheme else NexosLightScheme
+
+    // Apply the user-picked Google Font across every typography slot. The default value
+    // (Inter) closely matches the bundled FontFamily.SansSerif, so picking 'Inter' is a
+    // no-op visually — the other 4 fonts produce a genuinely different look.
+    val family = rememberFontFamily(fontChoice)
+    val typography = remember(fontChoice) { applyFontFamily(NexosTypography, family) }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -96,8 +104,32 @@ fun NexosTheme(
     }
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = NexosTypography,
+        typography = typography,
         shapes = NexosShapes,
         content = content
     )
 }
+
+/**
+ * Rebuild a Typography with every TextStyle re-pointed at the supplied [family]. Cheaper
+ * than constructing the whole Typography from scratch for each font choice — the per-slot
+ * weight / size / letter-spacing tokens stay identical.
+ */
+private fun applyFontFamily(base: androidx.compose.material3.Typography, family: androidx.compose.ui.text.font.FontFamily): androidx.compose.material3.Typography =
+    androidx.compose.material3.Typography(
+        displayLarge = base.displayLarge.copy(fontFamily = family),
+        displayMedium = base.displayMedium.copy(fontFamily = family),
+        displaySmall = base.displaySmall.copy(fontFamily = family),
+        headlineLarge = base.headlineLarge.copy(fontFamily = family),
+        headlineMedium = base.headlineMedium.copy(fontFamily = family),
+        headlineSmall = base.headlineSmall.copy(fontFamily = family),
+        titleLarge = base.titleLarge.copy(fontFamily = family),
+        titleMedium = base.titleMedium.copy(fontFamily = family),
+        titleSmall = base.titleSmall.copy(fontFamily = family),
+        bodyLarge = base.bodyLarge.copy(fontFamily = family),
+        bodyMedium = base.bodyMedium.copy(fontFamily = family),
+        bodySmall = base.bodySmall.copy(fontFamily = family),
+        labelLarge = base.labelLarge.copy(fontFamily = family),
+        labelMedium = base.labelMedium.copy(fontFamily = family),
+        labelSmall = base.labelSmall.copy(fontFamily = family)
+    )

@@ -139,6 +139,25 @@ fun SettingsScreen(
                 onSelect = themeViewModel::setMode
             )
 
+            // Font picker — re-themes the whole app instantly. 5 Google Fonts cached on
+            // first use; default Inter requires no network round-trip.
+            val currentFont by themeViewModel.fontChoice.collectAsStateWithLifecycle()
+            Text(
+                "TYPEFACE",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "Picks a Google Font for every text style in the app. The first time you select a non-default font, NexOS downloads it via Google Play Services and caches it for offline use.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FontPickerRow(
+                current = currentFont,
+                onSelect = themeViewModel::setFont
+            )
+
             // --- AI provider ---
             SectionHeader(PandaSectionKind.AiProvider, "AI PROVIDER",
                 "NexOS works without AI — keys upgrade notes with summaries")
@@ -293,6 +312,66 @@ private fun SectionHeader(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+private fun FontPickerRow(
+    current: com.nexos.ai.presentation.ui.theme.FontChoice,
+    onSelect: (com.nexos.ai.presentation.ui.theme.FontChoice) -> Unit
+) {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        com.nexos.ai.presentation.ui.theme.FontChoice.entries.forEach { choice ->
+            val selected = choice == current
+            // Preview the font in its own card so the user sees what it looks like before
+            // selecting. The Composable's MaterialTheme.typography is already re-applied
+            // globally; this preview renders the font name with a per-card override.
+            val family = com.nexos.ai.presentation.ui.theme.rememberFontFamily(choice)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(
+                        if (selected) 1.5.dp else 1.dp,
+                        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        RoundedCornerShape(12.dp)
+                    )
+                    .clickable { onSelect(choice) }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        choice.displayName,
+                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = family),
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "The quick brown panda jumps over the lazy fox.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = family),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (selected) {
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.Check, contentDescription = "Selected",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(12.dp))
+                    }
+                }
+            }
         }
     }
 }

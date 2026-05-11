@@ -9,6 +9,9 @@
     <!-- Voice input -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Location — used only by the weather strip on the Notes home; coarse is enough -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
