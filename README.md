@@ -9,22 +9,29 @@ This branch (`apk`, no slash in name → guaranteed-stable URLs) hosts the **lat
 | **Release** (recommended) | `NexOS-latest-release.apk` | 54 MB | **[Download](https://github.com/AryanSahay1/APK/raw/apk/NexOS-latest-release.apk)** |
 | Debug | `NexOS-latest-debug.apk` | 60 MB | **[Download](https://github.com/AryanSahay1/APK/raw/apk/NexOS-latest-debug.apk)** |
 
-## Pinned to v1.1.2 (won't change)
+## Pinned to v1.2.0 (won't change)
 
 | Build | Size | Direct download |
 |---|---|---|
-| Release v1.1.2 | 54 MB | https://github.com/AryanSahay1/APK/raw/apk/NexOS-v1.1.2-release.apk |
-| Debug v1.1.2 | 60 MB | https://github.com/AryanSahay1/APK/raw/apk/NexOS-v1.1.2-debug.apk |
+| Release v1.2.0 | 54 MB | https://github.com/AryanSahay1/APK/raw/apk/NexOS-v1.2.0-release.apk |
+| Debug v1.2.0 | 60 MB | https://github.com/AryanSahay1/APK/raw/apk/NexOS-v1.2.0-debug.apk |
 
-## Why a flat `apk` branch?
+## What's new in v1.2.0 — "Pandas Everywhere"
 
-The previous `releases/v1.1.2`-style URL has a slash in the branch name. Some browsers (and mobile chromium caches) get confused parsing those URLs because they can't tell the branch boundary from a path separator. The flat `apk` branch eliminates that ambiguity — every character after `/raw/apk/` is the filename.
+### Fixes
+- 🌤️ **Weather works for everyone, with or without a key** — removed the invalid OpenWeather seed that returned HTTP 401, now falls back to Open-Meteo (free, no key) automatically on every error path.
+- 🛵 **Rapido** actually opens now — destination copied to clipboard, Rapido app launched, falls back to Google Maps if Rapido isn't installed.
+- 🍽️ **Zomato** receives the search query — switched to HTTPS App-Link path which Zomato's app actually handles.
 
-```
-https://github.com/AryanSahay1/APK/raw/apk/NexOS-latest-release.apk
-                                    ^^^                 ^^^^^^^^^^^^^^^^^^^^^^^
-                                  branch name           filename
-```
+### New
+- 📧 **In-app Gmail composer** — fill To / Cc / Subject / Body inside NexOS, tap Send to hand off to Gmail prefilled.
+- 📅 **Calendar month grid** — tap any day → sheet with title/time/duration/notes → goes to your phone's Calendar.
+- ⏰ **In-built clock alarm** — TimePicker + day-of-week chips, recurring alarms re-arm automatically.
+- 📸 **One-shot capture** — Notes → Capture → app backgrounds → floating panda appears over any app → tap to screenshot → note created → floating button vanishes.
+- 🐼 **30 panda variants** scattered behind the Hub and Welcome screens (sleepy, coffee, headphones, sunglasses, crown, balloon, chef, wizard, detective, runner, pirate, birthday, … 30 in total). Random-but-stable positions, never clustered, gentle bob animation.
+
+### Removed
+- Google Search, Photos, YouTube tiles from the Google ecosystem hub (per request — kept Gmail, Calendar, Drive, Translate).
 
 ## Install
 
@@ -32,31 +39,14 @@ https://github.com/AryanSahay1/APK/raw/apk/NexOS-latest-release.apk
 adb install NexOS-latest-release.apk
 ```
 
-Or copy the `.apk` to your phone, tap it, allow "Install unknown apps" when prompted, tap **Install**.
-
-## Verify integrity
-
-```bash
-apksigner verify --verbose NexOS-latest-release.apk
-# APK Signature Scheme v2: true
-```
-
-## Build from source
-
-```bash
-git clone https://github.com/AryanSahay1/APK
-cd APK
-git checkout v1.1.2
-./gradlew :app:assembleRelease
-```
-
-## All NexOS releases
+## All releases
 
 - [`v1.0.0`](https://github.com/AryanSahay1/APK/tree/v1.0.0) — MVP
-- [`v1.1.0`](https://github.com/AryanSahay1/APK/tree/v1.1.0) — Super-Panda (Weather, Maps, Google ecosystem, Settings re-design)
-- [`v1.1.1`](https://github.com/AryanSahay1/APK/tree/v1.1.1) — GNews API key seeded
-- [`v1.1.2`](https://github.com/AryanSahay1/APK/tree/v1.1.2) — OpenWeather API key seeded (current)
+- [`v1.1.0`](https://github.com/AryanSahay1/APK/tree/v1.1.0) — Super-Panda
+- [`v1.1.1`](https://github.com/AryanSahay1/APK/tree/v1.1.1) — GNews seeded
+- [`v1.1.2`](https://github.com/AryanSahay1/APK/tree/v1.1.2) — OpenWeather attempt
+- [`v1.2.0`](https://github.com/AryanSahay1/APK/tree/v1.2.0) — Pandas Everywhere (current)
 
 ## Licence
 
-Apache License 2.0. See [LICENSE](https://github.com/AryanSahay1/APK/blob/main/LICENSE) on the main branch.
+Apache License 2.0. See [LICENSE](https://github.com/AryanSahay1/APK/blob/main/LICENSE).
