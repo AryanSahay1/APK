@@ -72,9 +72,8 @@ fun SuperAppHubScreen(
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit
 ) {
-    val context = LocalContext.current
-    var rapidoPrompt by remember { mutableStateOf(false) }
-    var zomatoPrompt by remember { mutableStateOf(false) }
+    // context unused now that Rapido/Zomato prompts are removed; we route all destinations
+    // out through the per-screen detail flows (UberDetailScreen, SwiggyDetailScreen).
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -105,18 +104,10 @@ fun SuperAppHubScreen(
             // — Transport —
             HubTile("Uber", "Book a ride", Icons.Rounded.DirectionsCar,
                 accent = Color(0xFF000000), accentBg = Color(0x331A1A1A)) { onOpenUber() },
-            HubTile("Rapido", "Bike ride, fast", Icons.AutoMirrored.Rounded.DirectionsBike,
-                accent = Color(0xFFFFC107), accentBg = Color(0x33FFC107)) {
-                rapidoPrompt = true
-            },
 
             // — Food —
             HubTile("Swiggy", "Delivery in minutes", Icons.Rounded.LocalDining,
                 accent = Color(0xFFFC8019), accentBg = Color(0x33FC8019)) { onOpenSwiggy() },
-            HubTile("Zomato", "Find food near you", Icons.Rounded.RestaurantMenu,
-                accent = Color(0xFFE23744), accentBg = Color(0x33E23744)) {
-                zomatoPrompt = true
-            },
 
             // — Settings —
             HubTile("Settings", "AI, news, theme, floating button", Icons.Rounded.Settings,
@@ -140,28 +131,6 @@ fun SuperAppHubScreen(
         }
     }
 
-    if (rapidoPrompt) {
-        DeepLinkQuickPrompt(
-            title = "Open Rapido",
-            placeholder = "Destination address",
-            onCancel = { rapidoPrompt = false },
-            onConfirm = { value ->
-                rapidoPrompt = false
-                if (value.isNotBlank()) DeepLinks.launchRapido(context, value)
-            }
-        )
-    }
-    if (zomatoPrompt) {
-        DeepLinkQuickPrompt(
-            title = "Open Zomato",
-            placeholder = "Search (e.g. biryani)",
-            onCancel = { zomatoPrompt = false },
-            onConfirm = { value ->
-                zomatoPrompt = false
-                if (value.isNotBlank()) DeepLinks.launchZomato(context, value)
-            }
-        )
-    }
 }
 
 private data class HubTile(
@@ -208,45 +177,3 @@ private fun TileCard(tile: HubTile) {
     }
 }
 
-@Composable
-private fun DeepLinkQuickPrompt(
-    title: String,
-    placeholder: String,
-    onCancel: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var input by remember { mutableStateOf("") }
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onCancel,
-        title = { Text(title) },
-        text = {
-            Column {
-                Text(
-                    "NexOS will hand off to the chosen app. If it's not installed, you'll be taken to its Play Store listing.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(12.dp))
-                androidx.compose.material3.OutlinedTextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    placeholder = { Text(placeholder) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
-                )
-            }
-        },
-        confirmButton = {
-            androidx.compose.material3.Button(
-                onClick = { onConfirm(input) },
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) { Text("Open") }
-        },
-        dismissButton = {
-            androidx.compose.material3.TextButton(onClick = onCancel) { Text("Cancel") }
-        }
-    )
-}

@@ -112,9 +112,11 @@ fun NexosNavHost(
     Scaffold(
         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            // Panda assistant FAB — visible on every top-level tab. Uses the FluffyPanda
-            // mini-bust as the icon so the user knows what they're tapping into.
-            if (showBottomBar) {
+            // Panda assistant FAB. Hidden on the Notes tab because that screen has its own
+            // 'New note' ExtendedFloatingActionButton and stacking two FABs at the bottom-
+            // right looks crowded. On Notes we instead expose the panda via the top-bar
+            // mascot tap (added below).
+            if (showBottomBar && currentRoute != Routes.NOTES) {
                 FloatingActionButton(
                     onClick = { assistantOpen = true },
                     containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
@@ -179,7 +181,8 @@ fun NexosNavHost(
                     onAddNote = { navController.navigate(Routes.editNote()) },
                     onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                     onOpenVoice = { navController.navigate(Routes.VOICE) },
-                    onRequestScreenCapture = onRequestScreenCapture
+                    onRequestScreenCapture = onRequestScreenCapture,
+                    onOpenAssistant = { assistantOpen = true }
                 )
             }
             composable(Routes.NEWS) {

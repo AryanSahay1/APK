@@ -67,6 +67,7 @@ fun NoteListScreen(
     onOpenSettings: () -> Unit,
     onOpenVoice: () -> Unit,
     onRequestScreenCapture: () -> Unit,
+    onOpenAssistant: () -> Unit = {},
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
@@ -80,7 +81,10 @@ fun NoteListScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable(onClick = onOpenAssistant)
+                    ) {
                         com.nexos.ai.presentation.ui.components.PandaMascot(
                             size = 32.dp,
                             hasLeaf = true
@@ -89,9 +93,9 @@ fun NoteListScreen(
                         Column {
                             Text("NexOS", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             Text(
-                                "Capture · Transcribe · Summarize",
+                                "Tap the panda to chat",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
