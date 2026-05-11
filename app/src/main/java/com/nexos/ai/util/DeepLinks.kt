@@ -57,57 +57,98 @@ object DeepLinks {
     }
 
     /**
-     * Rapido: rapido://book?destination=… is the documented intent. We additionally pass the
-     * destination as a regular query parameter so older versions of the app still pick it up.
+     * Rapido does not publish a documented "open the app with destination prefilled" deep
+     * link. The previous `rapido://book?destination=…` attempt was speculative and never
+     * resolved on any installed Rapido version.
+     *
+     * Pragmatic workflow: open Google Maps directions to the destination so the user can
+     * see the route and the address copy buffer is loaded; then we surface the Rapido app
+     * directly via its launcher intent so the user can paste/type the destination they just
+     * saw. If Rapido isn't installed we fall through to its Play Store page.
+     *
+     * This is the same pattern any third-party app uses to "open Rapido at a place" — there
+     * is no API to pre-fill destination from outside Rapido's own UI.
      */
     fun launchRapido(context: Context, destinationAddress: String): LaunchResult {
-        val uri = Uri.Builder()
-            .scheme("rapido")
-            .authority("book")
-            .appendQueryParameter("destination", destinationAddress)
-            .appendQueryParameter("destination_address", destinationAddress)
-            .build()
-        val fallback = Uri.parse(
-            "https://onelink.to/rapido?destination=${urlEncode(destinationAddress)}"
-        )
-        return openOrFallback(
-            context,
-            uri,
-            fallback,
-            playStorePackage = "com.rapido.passenger"
-        )
+        // 1. Try the Rapido app's launcher intent (opens app's home screen).
+        val pm = context.packageManager
+        val rapidoLaunch = pm.getLaunchIntentForPackage("com.rapido.passenger")
+        if (rapidoLaunch != null) {
+            rapidoLaunch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            // Stash the destination in the clipboard so the user can paste it inside Rapido.
+            copyToClipboard(context, "NexOS destination", destinationAddress)
+            return try {
+                context.startActivity(rapidoLaunch)
+                LaunchResult.OpenedNative
+            } catch (t: Throwable) {
+                Log.e(TAG, "Rapido launcher intent failed: ${t.message}")
+                openMapsFallback(context, destinationAddress)
+            }
+        }
+        // 2. Rapido not installed — open Google Maps directions so the user can switch to
+        //    any ride app from there (Maps shows "Ride" buttons). Stash destination to
+        //    clipboard either way.
+        copyToClipboard(context, "NexOS destination", destinationAddress)
+        return openMapsFallback(context, destinationAddress)
+    }
+
+    private fun openMapsFallback(context: Context, destination: String): LaunchResult {
+        return launchMapsDirections(context, destination)
+    }
+
+    private fun copyToClipboard(context: Context, label: String, value: String) {
+        if (value.isBlank()) return
+        runCatching {
+            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            cm.setPrimaryClip(android.content.ClipData.newPlainText(label, value))
+        }
     }
 
     // -------- Food ordering --------
 
     /**
-     * Zomato: zomato://search?query=…  Restaurant search defaults to the user's currently
-     * configured location inside Zomato — NexOS never passes coordinates.
+     * Zomato: open via the HTTPS App Link `https://www.zomato.com/search?q=…`. Zomato's
+     * Android app registers as a handler for `*.zomato.com` URLs, so Android routes the
+     * intent into the installed app and the search query is passed through. The previous
+     * `zomato://search?query=` private scheme only opened the app's home, not the search.
+     *
+     * Also tries `setPackage("com.application.zomato")` first so Android doesn't show a
+     * disambiguation chooser if the user has multiple browsers installed.
      */
     fun launchZomato(context: Context, query: String): LaunchResult {
-        val safeQuery = query.ifBlank { "restaurants near me" }
-        val uri = Uri.Builder()
-            .scheme("zomato")
-            .authority("search")
-            .appendQueryParameter("query", safeQuery)
-            .build()
-        val fallback = Uri.parse("https://www.zomato.com/search?q=${urlEncode(safeQuery)}")
-        return openOrFallback(context, uri, fallback, playStorePackage = "com.application.zomato")
+        val safeQuery = query.ifBlank { "restaurants" }
+        val webUrl = Uri.parse("https://www.zomato.com/search?q=${urlEncode(safeQuery)}")
+
+        // Try the Zomato app explicitly first
+        val appIntent = Intent(Intent.ACTION_VIEW, webUrl).apply {
+            setPackage("com.application.zomato")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { context.startActivity(appIntent) }.onSuccess {
+            return LaunchResult.OpenedNative
+        }
+        // Fall back to a plain VIEW intent — Android App Links will still route to Zomato
+        // if installed, else open in browser, else Play Store via openOrFallback.
+        return openOrFallback(context, webUrl, webUrl, playStorePackage = "com.application.zomato")
     }
 
     /**
-     * Swiggy: swiggy://search?query=… Behaves like Zomato — Swiggy uses the device location
-     * already configured inside the app.
+     * Swiggy: same App-Link pattern as Zomato. We've kept the previous `swiggy://search`
+     * fallback for legacy installs but App Links to `https://www.swiggy.com/search?query=`
+     * are more reliable across Swiggy versions.
      */
     fun launchSwiggy(context: Context, query: String): LaunchResult {
-        val safeQuery = query.ifBlank { "restaurants near me" }
-        val uri = Uri.Builder()
-            .scheme("swiggy")
-            .authority("search")
-            .appendQueryParameter("query", safeQuery)
-            .build()
-        val fallback = Uri.parse("https://www.swiggy.com/search?query=${urlEncode(safeQuery)}")
-        return openOrFallback(context, uri, fallback, playStorePackage = "in.swiggy.android")
+        val safeQuery = query.ifBlank { "restaurants" }
+        val webUrl = Uri.parse("https://www.swiggy.com/search?query=${urlEncode(safeQuery)}")
+
+        val appIntent = Intent(Intent.ACTION_VIEW, webUrl).apply {
+            setPackage("in.swiggy.android")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { context.startActivity(appIntent) }.onSuccess {
+            return LaunchResult.OpenedNative
+        }
+        return openOrFallback(context, webUrl, webUrl, playStorePackage = "in.swiggy.android")
     }
 
     // -------- Maps / general --------

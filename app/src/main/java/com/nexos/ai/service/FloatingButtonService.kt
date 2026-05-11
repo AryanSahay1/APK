@@ -103,11 +103,22 @@ class FloatingButtonService : Service() {
         attachOverlay()
     }
 
+    /**
+     * When true, the floating button auto-stops itself after a single successful capture so
+     * the user gets the "click to enable → tap to shoot → done" flow without the persistent
+     * overlay. Toggled by the start intent's ACTION_ARM_ONESHOT.
+     */
+    private var oneShotMode: Boolean = false
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_REQUEST_SCREENSHOT -> capture()
             ACTION_REQUEST_VOICE -> startVoice()
             ACTION_OPEN_APP -> openApp(this)
+            ACTION_ARM_ONESHOT -> {
+                oneShotMode = true
+                // Keep the overlay visible so the user can tap to shoot once.
+            }
         }
         return START_STICKY
     }
@@ -320,11 +331,20 @@ class FloatingButtonService : Service() {
             }
             val bitmap = svc.captureScreen()
             val imagePath = bitmap?.let { saveBitmapToCache(it) }.orEmpty()
-            orchestrator.handleScreenshotCapture(bitmap, imagePath)
+            val savedNote = orchestrator.handleScreenshotCapture(bitmap, imagePath)
             // Recycle bitmap shortly after OCR completes (Layer 5: Image Cache Management).
             scope.launch {
                 delay(8_000L)
                 runCatching { bitmap?.recycle() }
+            }
+            // One-shot mode: tear ourselves down after a successful capture so the user
+            // doesn't have a permanent overlay floating around. Failures keep the button
+            // visible so the user can retry.
+            if (oneShotMode && savedNote != null) {
+                scope.launch {
+                    delay(1_200L) // brief confirmation animation
+                    stopSelf()
+                }
             }
         }
     }
@@ -362,6 +382,21 @@ class FloatingButtonService : Service() {
         const val ACTION_REQUEST_SCREENSHOT = "${Constants.PACKAGE}.FLOAT_REQ_SCREENSHOT"
         const val ACTION_REQUEST_VOICE = "${Constants.PACKAGE}.FLOAT_REQ_VOICE"
         const val ACTION_OPEN_APP = "${Constants.PACKAGE}.FLOAT_OPEN_APP"
+        const val ACTION_ARM_ONESHOT = "${Constants.PACKAGE}.FLOAT_ARM_ONESHOT"
+
+        /**
+         * Start the floating button in one-shot mode: the overlay appears, the user taps it
+         * to capture, and after a successful save the service stops itself. Lets a single
+         * "Capture" tile in NoteListScreen give the user a "tap once to start, tap once to
+         * shoot" experience instead of a persistent overlay that needs to be toggled in
+         * Settings.
+         */
+        fun startOneShot(context: Context) {
+            val i = Intent(context, FloatingButtonService::class.java).apply {
+                action = ACTION_ARM_ONESHOT
+            }
+            startCompat(context, i)
+        }
 
         @Volatile private var instance: FloatingButtonService? = null
 

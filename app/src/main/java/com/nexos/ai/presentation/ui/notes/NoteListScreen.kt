@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nexos.ai.util.canDrawOverlays
 import com.nexos.ai.presentation.ui.components.EmptyState
 import com.nexos.ai.presentation.ui.components.NoteCard
 import com.nexos.ai.presentation.ui.components.WorkflowBanner
@@ -182,13 +183,36 @@ private fun QuickActionsRow(
     onVoice: () -> Unit,
     onManual: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        QuickAction("Capture", Icons.Rounded.CenterFocusStrong, onCapture, Modifier.weight(1f))
+        QuickAction(
+            label = "Capture",
+            icon = Icons.Rounded.CenterFocusStrong,
+            onClick = {
+                // One-shot flow: arm floating button → user taps → screenshot → note → button vanishes.
+                // Requires overlay permission and an active MediaProjection grant. If either is
+                // missing, we fall back to the original onCapture handler which prompts for the
+                // missing piece via MainActivity.
+                if (context.canDrawOverlays() &&
+                    com.nexos.ai.service.ScreenshotProjectionState.isGranted) {
+                    com.nexos.ai.service.FloatingButtonService.startOneShot(context)
+                    // Minimise NexOS so the user can capture whatever app they want
+                    val home = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
+                        addCategory(android.content.Intent.CATEGORY_HOME)
+                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    runCatching { context.startActivity(home) }
+                } else {
+                    onCapture()
+                }
+            },
+            modifier = Modifier.weight(1f)
+        )
         QuickAction("Voice", Icons.Rounded.Mic, onVoice, Modifier.weight(1f))
         QuickAction("Write", Icons.Rounded.Add, onManual, Modifier.weight(1f))
     }

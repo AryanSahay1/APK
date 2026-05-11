@@ -23,9 +23,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.Email
-import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -50,7 +47,11 @@ import com.nexos.ai.util.DeepLinks
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoogleEcosystemScreen(onBack: () -> Unit) {
+fun GoogleEcosystemScreen(
+    onBack: () -> Unit,
+    onOpenGmailCompose: () -> Unit,
+    onOpenCalendarGrid: () -> Unit
+) {
     val context = LocalContext.current
 
     Scaffold(
@@ -74,26 +75,17 @@ fun GoogleEcosystemScreen(onBack: () -> Unit) {
         }
     ) { padding ->
         val tiles = listOf(
-            GoogleTile("Gmail", "Compose a new email", Icons.Rounded.Email, Color(0xFFEA4335)) {
-                DeepLinks.launchGmailCompose(context)
+            GoogleTile("Gmail", "Compose in-app then send", Icons.Rounded.Email, Color(0xFFEA4335)) {
+                onOpenGmailCompose()
             },
-            GoogleTile("Calendar", "Create an event", Icons.Rounded.CalendarToday, Color(0xFF4285F4)) {
-                DeepLinks.launchCalendarEvent(context)
+            GoogleTile("Calendar", "Tap a day, add an event", Icons.Rounded.CalendarToday, Color(0xFF4285F4)) {
+                onOpenCalendarGrid()
             },
-            GoogleTile("Drive", "Open Drive", Icons.Rounded.Cloud, Color(0xFFFBBC04)) {
+            GoogleTile("Drive", "Open your Drive", Icons.Rounded.Cloud, Color(0xFFFBBC04)) {
                 DeepLinks.launchDrive(context)
-            },
-            GoogleTile("Search", "Google search", Icons.Rounded.Search, Color(0xFF34A853)) {
-                DeepLinks.launchGoogleSearch(context, "")
             },
             GoogleTile("Translate", "Open Translate", Icons.Rounded.Translate, Color(0xFF1A73E8)) {
                 DeepLinks.launchTranslate(context)
-            },
-            GoogleTile("Photos", "Open Photos", Icons.Rounded.Image, Color(0xFFFF6D00)) {
-                DeepLinks.launchPhotos(context)
-            },
-            GoogleTile("YouTube", "Watch & search", Icons.Rounded.PlayArrow, Color(0xFFFF0033)) {
-                DeepLinks.launchYouTube(context)
             }
         )
         LazyVerticalGrid(

@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity() {
                 val intent = ScreenshotService.startIntent(this, result.resultCode, data)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
                 else startService(intent)
+                com.nexos.ai.service.ScreenshotProjectionState.isGranted = true
 
                 // If we were opened from the floating button for capture, fire one now via the receiver.
                 val nav = this.intent?.getStringExtra(Constants.EXTRA_NAV_ROUTE)

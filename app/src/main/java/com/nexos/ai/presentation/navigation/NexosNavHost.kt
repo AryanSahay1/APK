@@ -28,6 +28,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.nexos.ai.presentation.ui.alarms.AlarmsScreen
+import com.nexos.ai.presentation.ui.google.CalendarGridScreen
+import com.nexos.ai.presentation.ui.google.GmailComposeScreen
 import com.nexos.ai.presentation.ui.google.GoogleEcosystemScreen
 import com.nexos.ai.presentation.ui.hub.AboutScreen
 import com.nexos.ai.presentation.ui.hub.SuperAppHubScreen
@@ -59,6 +61,8 @@ object Routes {
     const val GOOGLE = "google"
     const val UBER = "uber"
     const val SWIGGY = "swiggy"
+    const val GMAIL_COMPOSE = "gmailCompose"
+    const val CALENDAR_GRID = "calendarGrid"
 
     fun noteDetail(id: Long) = "noteDetail/$id"
     fun editNote(id: Long = -1L) = "editNote/$id"
@@ -184,7 +188,17 @@ fun NexosNavHost(
                 MapsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.GOOGLE) {
-                GoogleEcosystemScreen(onBack = { navController.popBackStack() })
+                GoogleEcosystemScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenGmailCompose = { navController.navigate(Routes.GMAIL_COMPOSE) },
+                    onOpenCalendarGrid = { navController.navigate(Routes.CALENDAR_GRID) }
+                )
+            }
+            composable(Routes.GMAIL_COMPOSE) {
+                GmailComposeScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.CALENDAR_GRID) {
+                CalendarGridScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.UBER) {
                 UberDetailScreen(onBack = { navController.popBackStack() })

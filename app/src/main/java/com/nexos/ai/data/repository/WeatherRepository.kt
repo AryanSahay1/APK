@@ -54,46 +54,52 @@ class WeatherRepository @Inject constructor(
 
     suspend fun searchCity(query: String): Result<List<CityResult>> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext Result.success(emptyList())
-        try {
-            withTimeout(Constants.AI_REQUEST_TIMEOUT_MS) {
-                // Prefer OpenWeather geocoding when key set — produces the same shape the user
-                // sees if they later switch providers. Falls back to Open-Meteo geocoding.
-                val key = openWeatherKey()
-                if (key != null) {
+        // Try OpenWeather geocoding first IF the user has a working key; on any failure
+        // (401, 5xx, network, timeout) transparently fall back to Open-Meteo's free geocoder.
+        // This means a stale / revoked / quota-exhausted OpenWeather key never breaks the
+        // user — they always get search results.
+        val key = openWeatherKey()
+        if (key != null) {
+            val attempt = runCatching {
+                withTimeout(Constants.AI_REQUEST_TIMEOUT_MS) {
                     val response = openWeatherApi.geocode(query, apiKey = key)
-                    if (!response.isSuccessful) {
-                        return@withTimeout Result.failure(WeatherException.Http(response.code()))
-                    }
-                    val results = response.body().orEmpty().map {
+                    if (!response.isSuccessful) throw WeatherException.Http(response.code())
+                    response.body().orEmpty().map {
                         CityResult(
                             label = listOfNotNull(it.name, it.state, it.country).joinToString(", "),
                             latitude = it.lat,
                             longitude = it.lon
                         )
                     }
-                    Result.success(results)
-                } else {
-                    val response = openMeteoGeocodingApi.searchCity(query)
-                    if (!response.isSuccessful) {
-                        return@withTimeout Result.failure(WeatherException.Http(response.code()))
-                    }
-                    val results = response.body()?.results.orEmpty().map {
-                        CityResult(
-                            label = listOfNotNull(it.name, it.country).joinToString(", "),
-                            latitude = it.latitude,
-                            longitude = it.longitude
-                        )
-                    }
-                    Result.success(results)
                 }
             }
-        } catch (e: TimeoutCancellationException) {
-            Result.failure(WeatherException.Timeout)
-        } catch (e: IOException) {
-            Result.failure(WeatherException.Network(e.message ?: ""))
-        } catch (t: Throwable) {
-            Result.failure(WeatherException.Unknown(t.message ?: ""))
+            if (attempt.isSuccess) return@withContext Result.success(attempt.getOrThrow())
+            // intentional fall-through to Open-Meteo
         }
+        searchOpenMeteo(query)
+    }
+
+    private suspend fun searchOpenMeteo(query: String): Result<List<CityResult>> = try {
+        withTimeout(Constants.AI_REQUEST_TIMEOUT_MS) {
+            val response = openMeteoGeocodingApi.searchCity(query)
+            if (!response.isSuccessful) {
+                return@withTimeout Result.failure(WeatherException.Http(response.code()))
+            }
+            val results = response.body()?.results.orEmpty().map {
+                CityResult(
+                    label = listOfNotNull(it.name, it.country).joinToString(", "),
+                    latitude = it.latitude,
+                    longitude = it.longitude
+                )
+            }
+            Result.success(results)
+        }
+    } catch (e: TimeoutCancellationException) {
+        Result.failure(WeatherException.Timeout)
+    } catch (e: IOException) {
+        Result.failure(WeatherException.Network(e.message ?: ""))
+    } catch (t: Throwable) {
+        Result.failure(WeatherException.Unknown(t.message ?: ""))
     }
 
     /**

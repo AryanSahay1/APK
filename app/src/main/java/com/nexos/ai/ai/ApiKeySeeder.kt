@@ -57,14 +57,12 @@ class ApiKeySeeder @Inject constructor(
             slot = Constants.PROVIDER_NEWS_API,
             value = "5c33bb47e30a76d50029a00b7a28adeb",
             label = "GNews developer key"
-        ),
-        // OpenWeather bootstrap key (user-supplied, free tier — 60 requests/minute).
-        // Powers the in-app Weather screen out-of-the-box. When this slot is empty the
-        // WeatherRepository transparently falls back to Open-Meteo (no key, CC-BY).
-        Seed(
-            slot = Constants.PROVIDER_OPENWEATHER,
-            value = "ccdd42ee20e445228e1120122261105",
-            label = "OpenWeather free-tier key"
         )
+        // OpenWeather slot intentionally NOT seeded:
+        //   The placeholder key from an earlier agent (ccdd42ee…) returns HTTP 401 on the
+        //   live API — it was never valid. With no seed, WeatherRepository routes to
+        //   Open-Meteo (free, no key, no signup), which works for every user out-of-the-box.
+        //   The user can still paste their own OpenWeather key in Settings → Weather provider
+        //   if they want the higher accuracy / faster updates that tier provides.
     )
 }
