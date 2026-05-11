@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NexOS</string>
+    <string name="notification_channel_service_name">NexOS Service</string>
+    <string name="notification_channel_service_desc">Persistent notification for the floating capture button and screen capture.</string>
+    <string name="notification_channel_notes_name">NexOS Notes</string>
+    <string name="notification_channel_notes_desc">Confirmations when a note is saved.</string>
+
+    <string name="notification_service_title">NexOS is active</string>
+    <string name="notification_service_idle">Tap the floating button to capture.</string>
+    <string name="notification_service_capturing">Capturing screen…</string>
+    <string name="notification_service_processing">Processing…</string>
+    <string name="notification_service_saved">Note saved.</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_search">Search</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_share">Share</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_done">Done</string>
+
+    <string name="screen_notes_title">Notes</string>
+    <string name="screen_settings_title">Settings</string>
+    <string name="screen_note_detail_title">Note</string>
+    <string name="screen_edit_note_title_new">New note</string>
+    <string name="screen_edit_note_title_edit">Edit note</string>
+
+    <string name="empty_notes_title">No notes yet</string>
+    <string name="empty_notes_subtitle">Tap the + button or the floating overlay to capture your first note.</string>
+
+    <string name="search_hint">Search notes</string>
+    <string name="note_title_hint">Title</string>
+    <string name="note_content_hint">Write your thoughts…</string>
+
+    <string name="settings_section_capture">Capture</string>
+    <string name="settings_section_ai">AI</string>
+    <string name="settings_section_permissions">Permissions</string>
+    <string name="settings_section_storage">Storage</string>
+
+    <string name="settings_show_button">Show floating button</string>
+    <string name="settings_show_button_sub">Display the always-on overlay capture trigger.</string>
+    <string name="settings_auto_save">Auto-save notes</string>
+    <string name="settings_auto_save_sub">Save captures immediately without confirmation.</string>
+    <string name="settings_auto_summarize">Auto-summarize with AI</string>
+    <string name="settings_auto_summarize_sub">If an AI provider is configured, summarise captures.</string>
+
+    <string name="settings_provider">AI provider</string>
+    <string name="settings_api_key">API key</string>
+    <string name="settings_api_key_hint">Paste API key</string>
+    <string name="settings_api_key_save">Save key</string>
+    <string name="settings_test_connection">Test connection</string>
+    <string name="settings_clear_cache">Clear image cache</string>
+
+    <string name="permission_overlay">Display over other apps</string>
+    <string name="permission_overlay_sub">Required for the floating capture button.</string>
+    <string name="permission_microphone">Microphone</string>
+    <string name="permission_microphone_sub">Required for voice notes.</string>
+    <string name="permission_notifications">Notifications</string>
+    <string name="permission_notifications_sub">Required to show capture confirmations.</string>
+    <string name="permission_battery">Ignore battery optimizations</string>
+    <string name="permission_battery_sub">Prevents OEMs from killing the floating button.</string>
+    <string name="permission_grant">Grant</string>
+    <string name="permission_granted">Granted</string>
+
+    <string name="provider_none">None (local only)</string>
+    <string name="provider_openai">OpenAI</string>
+    <string name="provider_gemini">Google Gemini</string>
+    <string name="provider_anthropic">Anthropic Claude</string>
+    <string name="provider_groq">Groq (recommended free)</string>
+
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_tap_to_stop">Tap microphone to stop</string>
+    <string name="voice_processing">Processing your note…</string>
+    <string name="voice_idle">Tap to start speaking</string>
+
+    <string name="capture_error_screen">Couldn\'t capture screen.</string>
+    <string name="capture_error_ocr">Couldn\'t read text from screen.</string>
+    <string name="capture_error_ai">AI summary failed — saved raw note instead.</string>
+    <string name="capture_success">Note saved.</string>
+    <string name="capture_processing">Processing capture…</string>
+
+    <string name="cd_floating_button">NexOS floating capture button</string>
+    <string name="cd_open_settings">Open settings</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_microphone">Microphone</string>
+    <string name="cd_close_voice">Close voice input</string>
+</resources>
