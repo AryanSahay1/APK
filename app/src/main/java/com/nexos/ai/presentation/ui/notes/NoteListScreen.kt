@@ -45,7 +45,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -81,19 +80,10 @@ fun NoteListScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(NexosPrimary, Color(0xFF00B85F))
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("N", color = NexosBackground, fontWeight = FontWeight.Bold)
-                        }
+                        com.nexos.ai.presentation.ui.components.PandaMascot(
+                            size = 32.dp,
+                            hasLeaf = true
+                        )
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text("NexOS", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -163,12 +153,13 @@ fun NoteListScreen(
 
             if (notes.isEmpty()) {
                 EmptyState(
-                    title = if (query.isBlank()) "No notes yet" else "No matches",
+                    title = if (query.isBlank()) "Your panda is napping" else "No matches",
                     subtitle = if (query.isBlank())
                         "Capture a screen, speak an idea, or write a note. Everything you save lives only on this device."
                     else "Try a different search.",
-                    icon = Icons.Rounded.AutoAwesome,
-                    modifier = Modifier.padding(top = 40.dp)
+                    showPanda = true,
+                    pandaSleeping = query.isBlank(),
+                    modifier = Modifier.padding(top = 24.dp)
                 )
             } else {
                 LazyColumn(

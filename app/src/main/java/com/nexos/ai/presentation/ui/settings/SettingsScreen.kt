@@ -190,12 +190,23 @@ fun SettingsScreen(
 
             SectionTitle("About")
             Text(
-                "NexOS MVP · v1.0\n" +
+                "NexOS · v${com.nexos.ai.BuildConfig.VERSION_NAME}\n" +
                     "All processing happens on this device. The optional AI provider you select " +
-                    "only sees the text you choose to send to it.",
+                    "only sees the text you choose to send to it. Apache 2.0 · free forever.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(Modifier.height(20.dp))
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                com.nexos.ai.presentation.ui.components.PandaMascot(
+                    size = 56.dp,
+                    hasLeaf = true,
+                    sleeping = true
+                )
+            }
             Spacer(Modifier.height(48.dp))
         }
     }

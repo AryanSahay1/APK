@@ -42,16 +42,21 @@ import com.nexos.ai.presentation.ui.theme.NexosSurfaceElevated
 
 @Composable
 fun WorkflowBanner(state: WorkflowState, modifier: Modifier = Modifier) {
-    val label: String? = when (state) {
+    // Each state maps to (label, step index, isError). The step index drives the
+    // "step 2 / 4" counter so the user always knows how much of the pipeline remains.
+    data class BannerInfo(val label: String, val step: Int, val isError: Boolean = false)
+    val totalSteps = 4
+    val info: BannerInfo? = when (state) {
         WorkflowState.Idle -> null
-        WorkflowState.Capturing -> "Capturing screen"
-        WorkflowState.ExtractingText -> "Extracting text"
-        WorkflowState.AiProcessing -> "Asking AI"
-        WorkflowState.Saving -> "Saving note"
+        WorkflowState.Capturing -> BannerInfo("Capturing screen", 1)
+        WorkflowState.ExtractingText -> BannerInfo("Extracting text", 2)
+        WorkflowState.AiProcessing -> BannerInfo("Asking AI", 3)
+        WorkflowState.Saving -> BannerInfo("Saving note", 4)
         is WorkflowState.Done -> null
-        is WorkflowState.Failed -> state.error
+        is WorkflowState.Failed -> BannerInfo(state.error, 0, isError = true)
     }
-    AnimatedVisibility(visible = label != null, modifier = modifier) {
+    AnimatedVisibility(visible = info != null, modifier = modifier) {
+        val current = info ?: return@AnimatedVisibility
         val infinite = rememberInfiniteTransition(label = "banner-pulse")
         val pulse by infinite.animateFloat(
             initialValue = 0.55f,
@@ -71,15 +76,23 @@ fun WorkflowBanner(state: WorkflowState, modifier: Modifier = Modifier) {
             CircularProgressIndicator(
                 modifier = Modifier.size(18.dp),
                 strokeWidth = 2.dp,
-                color = if (state is WorkflowState.Failed) NexosError else NexosPrimary
+                color = if (current.isError) NexosError else NexosPrimary
             )
             Spacer(Modifier.width(12.dp))
-            Text(
-                text = label.orEmpty(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.alpha(pulse)
-            )
+            Column(modifier = Modifier.alpha(pulse)) {
+                Text(
+                    text = current.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (!current.isError) {
+                    Text(
+                        text = "Step ${current.step} of $totalSteps",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }
@@ -88,7 +101,9 @@ fun WorkflowBanner(state: WorkflowState, modifier: Modifier = Modifier) {
 fun EmptyState(
     title: String,
     subtitle: String,
-    icon: ImageVector = Icons.Rounded.AutoAwesome,
+    icon: ImageVector? = null,
+    showPanda: Boolean = true,
+    pandaSleeping: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -97,32 +112,38 @@ fun EmptyState(
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(CircleShape)
-                .background(NexosPrimarySoft),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = NexosPrimary,
-                modifier = Modifier.size(34.dp)
-            )
+        if (showPanda) {
+            PandaMascot(size = 96.dp, hasLeaf = true, sleeping = pandaSleeping)
+        } else if (icon != null) {
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(NexosPrimarySoft),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = NexosPrimary,
+                    modifier = Modifier.size(34.dp)
+                )
+            }
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
         Spacer(Modifier.height(6.dp))
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }

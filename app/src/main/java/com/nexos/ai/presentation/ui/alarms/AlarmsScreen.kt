@@ -115,7 +115,8 @@ fun AlarmsScreen(
                 EmptyState(
                     title = "No reminders yet",
                     subtitle = "Try \"remind me at 8am tomorrow\" or \"in 30 minutes call mom\".",
-                    icon = Icons.Rounded.Alarm
+                    showPanda = true,
+                    pandaSleeping = true
                 )
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {

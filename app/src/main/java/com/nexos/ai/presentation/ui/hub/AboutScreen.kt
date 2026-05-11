@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,12 +53,22 @@ fun AboutScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = androidx.compose.ui.Alignment.Start
         ) {
-            Text("NexOS · v${BuildConfig.VERSION_NAME}",
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            Text("Apache License 2.0 · Open source",
-                style = MaterialTheme.typography.labelMedium, color = NexosPrimary)
+            androidx.compose.foundation.layout.Row(
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                com.nexos.ai.presentation.ui.components.PandaMascot(size = 56.dp, hasLeaf = true)
+                Spacer(Modifier.height(0.dp))
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text("NexOS · v${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Apache License 2.0 · Open source",
+                        style = MaterialTheme.typography.labelMedium, color = NexosPrimary)
+                }
+            }
             Section("Free, forever") {
                 "Every feature is free. Every future update is free. No subscriptions, no ads, no telemetry. " +
                     "If a feature needs a third-party service, you supply your own API key — NexOS only " +

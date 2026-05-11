@@ -1,0 +1,22 @@
+<!--
+  Monochrome panda silhouette — used for the launcher icon's monochrome layer (Android 13+
+  themed icons) and as the notification small-icon. Android tints this drawable with the
+  current themed-icon color, so only one fill color is allowed here.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="?attr/colorControlNormal">
+
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 26,30 m -13,0 a 13,13 0 1,0 26,0 a 13,13 0 1,0 -26,0 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 82,30 m -13,0 a 13,13 0 1,0 26,0 a 13,13 0 1,0 -26,0 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 54,60 m -32,0 a 32,32 0 1,0 64,0 a 32,32 0 1,0 -64,0 Z" />
+</vector>

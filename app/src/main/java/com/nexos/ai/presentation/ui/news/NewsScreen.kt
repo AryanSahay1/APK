@@ -24,7 +24,9 @@ import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -120,37 +122,50 @@ fun NewsScreen(
                 onSelect = viewModel::selectCategory
             )
 
-            when {
-                state.isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = NexosPrimary)
-                }
-                state.error != null -> EmptyState(
-                    title = "Couldn't load news",
-                    subtitle = state.error.orEmpty(),
-                    icon = Icons.AutoMirrored.Rounded.OpenInNew
-                )
-                state.articles.isEmpty() -> EmptyState(
-                    title = "No articles",
-                    subtitle = "Try a different category or search term.",
-                    icon = Icons.Rounded.Search
-                )
-                else -> LazyColumn(
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.articles, key = { it.url }) { article ->
-                        ArticleCard(
-                            article = article,
-                            isSaving = state.isSaving,
-                            onSave = { viewModel.saveAsNote(article) },
-                            onOpen = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                runCatching { context.startActivity(intent) }
-                            }
-                        )
+            val pullState = rememberPullRefreshState(
+                refreshing = state.isLoading,
+                onRefresh = viewModel::refresh
+            )
+            Box(modifier = Modifier.fillMaxSize().pullRefresh(pullState)) {
+                when {
+                    state.isLoading -> com.nexos.ai.presentation.ui.components.NewsSkeletonList()
+                    state.error != null -> EmptyState(
+                        title = "Couldn't load news",
+                        subtitle = state.error.orEmpty(),
+                        showPanda = true,
+                        pandaSleeping = false
+                    )
+                    state.articles.isEmpty() -> EmptyState(
+                        title = "No articles",
+                        subtitle = "Try a different category or search term.",
+                        showPanda = true,
+                        pandaSleeping = true
+                    )
+                    else -> LazyColumn(
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.articles, key = { it.url }) { article ->
+                            ArticleCard(
+                                article = article,
+                                isSaving = state.isSaving,
+                                onSave = { viewModel.saveAsNote(article) },
+                                onOpen = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    runCatching { context.startActivity(intent) }
+                                }
+                            )
+                        }
                     }
                 }
+                PullRefreshIndicator(
+                    refreshing = state.isLoading,
+                    state = pullState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    backgroundColor = MaterialTheme.colorScheme.surface,
+                    contentColor = NexosPrimary
+                )
             }
         }
     }

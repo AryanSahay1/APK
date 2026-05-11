@@ -81,27 +81,42 @@ fun SuperAppHubScreen(
         containerColor = NexosBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Hub", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        com.nexos.ai.presentation.ui.components.PandaMascot(size = 28.dp, hasLeaf = false)
+                        Spacer(Modifier.size(10.dp))
+                        Text("Hub", fontWeight = FontWeight.SemiBold)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NexosBackground)
             )
         }
     ) { padding ->
+        // Tile order: most-used at the top. Colours hint at each brand without using their
+        // trademarked logos (we use abstract tints + the icon).
         val tiles = listOf(
-            HubTile("Alarms & reminders", "Natural language scheduler", Icons.Rounded.Alarm) { onOpenAlarms() },
-            HubTile("Uber", "Book a ride to anywhere", Icons.Rounded.DirectionsCar) {
+            HubTile("Alarms & reminders", "Natural-language scheduler", Icons.Rounded.Alarm,
+                accent = Color(0xFF00E676)) { onOpenAlarms() },
+            HubTile("Uber", "Book a ride to anywhere", Icons.Rounded.DirectionsCar,
+                accent = Color(0xFF000000), accentBg = Color(0xFF1A1A1A)) {
                 promptKind = HubPromptKind.Uber
             },
-            HubTile("Rapido", "Bike ride, fast", Icons.AutoMirrored.Rounded.DirectionsBike) {
+            HubTile("Rapido", "Bike ride, fast", Icons.AutoMirrored.Rounded.DirectionsBike,
+                accent = Color(0xFFFFC107), accentBg = Color(0x33FFC107)) {
                 promptKind = HubPromptKind.Rapido
             },
-            HubTile("Zomato", "Find food near you", Icons.Rounded.RestaurantMenu) {
+            HubTile("Zomato", "Find food near you", Icons.Rounded.RestaurantMenu,
+                accent = Color(0xFFE23744), accentBg = Color(0x33E23744)) {
                 promptKind = HubPromptKind.Zomato
             },
-            HubTile("Swiggy", "Delivery in minutes", Icons.Rounded.LocalDining) {
+            HubTile("Swiggy", "Delivery in minutes", Icons.Rounded.LocalDining,
+                accent = Color(0xFFFC8019), accentBg = Color(0x33FC8019)) {
                 promptKind = HubPromptKind.Swiggy
             },
-            HubTile("Settings", "AI, news, floating button", Icons.Rounded.Settings) { onOpenSettings() },
-            HubTile("About & privacy", "How NexOS handles your data", Icons.Rounded.Info) { onOpenAbout() }
+            HubTile("Settings", "AI, news, floating button", Icons.Rounded.Settings,
+                accent = Color(0xFF4DA6FF)) { onOpenSettings() },
+            HubTile("About & privacy", "How NexOS handles your data", Icons.Rounded.Info,
+                accent = Color(0xFF9C7BFF)) { onOpenAbout() }
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -142,6 +157,8 @@ private data class HubTile(
     val title: String,
     val subtitle: String,
     val icon: ImageVector,
+    val accent: Color,
+    val accentBg: Color = Color(0x3300E676),
     val onClick: () -> Unit
 )
 
@@ -152,21 +169,21 @@ private fun TileCard(tile: HubTile) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, NexosBorder, RoundedCornerShape(18.dp))
+            .border(1.dp, NexosBorder, RoundedCornerShape(20.dp))
             .clickable(onClick = tile.onClick)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(NexosPrimarySoft),
+                .size(44.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(tile.accentBg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(tile.icon, contentDescription = null, tint = NexosPrimary, modifier = Modifier.size(22.dp))
+            Icon(tile.icon, contentDescription = null, tint = tile.accent, modifier = Modifier.size(24.dp))
         }
         Text(
             tile.title,
