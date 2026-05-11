@@ -1,53 +1,43 @@
-# NexOS Release Assets
+# NexOS v1.1.0 — Super-Panda Release
 
-This branch (`releases/v1.0.0`) hosts the pre-built APKs for the [`v1.0.0` tag](https://github.com/AryanSahay1/APK/releases/tag/v1.0.0).
+This branch hosts pre-built APKs for the [`v1.1.0` tag](https://github.com/AryanSahay1/APK/tree/v1.1.0). See [`docs/PRD-v1.1.md`](https://github.com/AryanSahay1/APK/blob/v1.1.0/docs/PRD-v1.1.md) for the release plan.
 
 ## Direct downloads
 
-| Build | File | Size | Direct download URL |
+| Build | File | Size | Direct download |
 |---|---|---|---|
-| **Release** (recommended) | `NexOS-v1.0.0-release.apk` | 54 MB | [Download](https://github.com/AryanSahay1/APK/raw/releases/v1.0.0/NexOS-v1.0.0-release.apk) |
-| Debug | `NexOS-v1.0.0-debug.apk` | 60 MB | [Download](https://github.com/AryanSahay1/APK/raw/releases/v1.0.0/NexOS-v1.0.0-debug.apk) |
+| **Release** (recommended) | `NexOS-v1.1.0-release.apk` | 54 MB | [Download](https://github.com/AryanSahay1/APK/raw/releases/v1.1.0/NexOS-v1.1.0-release.apk) |
+| Debug | `NexOS-v1.1.0-debug.apk` | 60 MB | [Download](https://github.com/AryanSahay1/APK/raw/releases/v1.1.0/NexOS-v1.1.0-debug.apk) |
 
-Both APKs are signed with APK Signature Scheme v2 and install on any Android 8.0 (API 26) or newer device.
+Signed with APK Signature Scheme v2. Installs on any Android 8.0 (API 26) or newer device.
 
 ## Install via adb
 
 ```bash
-adb install NexOS-v1.0.0-release.apk
+adb install NexOS-v1.1.0-release.apk
 ```
 
-## Install on-device
+## What's new vs v1.0.0
 
-1. Copy the `.apk` to your phone.
-2. Open it from any file manager.
-3. Allow "Install unknown apps" for the file manager when prompted.
-4. Tap **Install**.
+- 🌤️ **Weather** — free Open-Meteo, no API key, 7-day forecast, save-as-note
+- 🗺️ **Maps quick categories** — Restaurants, Cafés, ATMs, Hospitals, Pharmacies, Gas stations, Hotels, Parks
+- 🅖 **Google ecosystem** screen — Gmail, Calendar, Drive, Search, Translate, Photos, YouTube
+- 🚗 **Uber detail screen** with Home / Work / Last destination quick chips
+- 🍽️ **Swiggy detail screen** with cuisine chips and recent searches
+- 🌗 **Day / Night / System theme** toggle (persistent)
+- 🐼 **Animated panda** mascot with Breathing / Wiggle / Wave / Bouncing / Loading variants
+- 🐼 **Per-section panda glyphs** for every Settings section (sun-and-moon, keyboard, broom, bubble, …)
 
-## Verify integrity
+Reduced-motion users get the same UI without animations (Android's "Remove animations" setting is respected).
 
-```bash
-$ apksigner verify --verbose NexOS-v1.0.0-release.apk
-Verifies
-Verified using v2 scheme (APK Signature Scheme v2): true   ✓
-Number of signers: 1
-```
+## Upgrading from v1.0.0
 
-## Build from source
-
-Don't trust pre-built binaries? Reproduce them yourself:
-
-```bash
-git clone https://github.com/AryanSahay1/APK
-cd APK
-git checkout v1.0.0
-./gradlew :app:assembleRelease
-# → app/build/outputs/apk/release/app-release.apk
-```
+No action needed — Room migration `v1 → v2` preserves every existing note. Just install over the previous APK; your data stays.
 
 ## License & policies
 
-- [LICENSE](https://github.com/AryanSahay1/APK/blob/v1.0.0/LICENSE) — Apache License 2.0
-- [PRIVACY.md](https://github.com/AryanSahay1/APK/blob/v1.0.0/PRIVACY.md) — Local-first; no telemetry; no backend
-- [UPDATES_POLICY.md](https://github.com/AryanSahay1/APK/blob/v1.0.0/UPDATES_POLICY.md) — Free forever; semver; reproducible builds
-- [NOTICE](https://github.com/AryanSahay1/APK/blob/v1.0.0/NOTICE) — Third-party attributions
+- [LICENSE](https://github.com/AryanSahay1/APK/blob/v1.1.0/LICENSE) — Apache License 2.0
+- [PRIVACY.md](https://github.com/AryanSahay1/APK/blob/v1.1.0/PRIVACY.md) — local-first; no telemetry; no backend
+- [UPDATES_POLICY.md](https://github.com/AryanSahay1/APK/blob/v1.1.0/UPDATES_POLICY.md) — free forever; semver; reproducible builds
+- [NOTICE](https://github.com/AryanSahay1/APK/blob/v1.1.0/NOTICE) — third-party attributions (now includes Open-Meteo CC-BY 4.0)
+- [docs/PRD-v1.1.md](https://github.com/AryanSahay1/APK/blob/v1.1.0/docs/PRD-v1.1.md) — the v1.1 product requirements doc
