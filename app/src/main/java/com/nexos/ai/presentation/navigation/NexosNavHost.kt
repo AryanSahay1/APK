@@ -72,9 +72,11 @@ object Routes {
     const val SWIGGY = "swiggy"
     const val GMAIL_COMPOSE = "gmailCompose"
     const val CALENDAR_GRID = "calendarGrid"
+    const val NOTEBOOK = "notebook/{noteId}"
 
     fun noteDetail(id: Long) = "noteDetail/$id"
     fun editNote(id: Long = -1L) = "editNote/$id"
+    fun notebook(id: Long) = "notebook/$id"
 }
 
 private sealed class BottomTab(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
@@ -245,7 +247,16 @@ fun NexosNavHost(
                 NoteDetailScreen(
                     noteId = id,
                     onBack = { navController.popBackStack() },
-                    onEdit = { navController.navigate(Routes.editNote(id)) }
+                    onEdit = { navController.navigate(Routes.editNote(id)) },
+                    onOpenNotebook = { navController.navigate(Routes.notebook(id)) }
+                )
+            }
+            composable(
+                Routes.NOTEBOOK,
+                arguments = listOf(navArgument("noteId") { type = NavType.LongType })
+            ) {
+                com.nexos.ai.presentation.ui.notes.NotebookScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(

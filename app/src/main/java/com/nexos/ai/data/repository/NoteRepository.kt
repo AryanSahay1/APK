@@ -33,4 +33,11 @@ class NoteRepository @Inject constructor(
     suspend fun deleteById(id: Long) = withContext(ioDispatcher) { noteDao.deleteById(id) }
 
     suspend fun count(): Int = withContext(ioDispatcher) { noteDao.getNoteCount() }
+
+    val notebooks: Flow<List<Note>> = noteDao.observeNotebooks()
+
+    fun observeNotebookPages(coverId: Long): Flow<List<Note>> = noteDao.observeNotebookPages(coverId)
+
+    suspend fun getNotebookPages(coverId: Long): List<Note> =
+        withContext(ioDispatcher) { noteDao.getNotebookPages(coverId) }
 }

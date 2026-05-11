@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Stop
@@ -64,6 +65,7 @@ fun NoteDetailScreen(
     @Suppress("UNUSED_PARAMETER") noteId: Long,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    onOpenNotebook: () -> Unit = {},
     viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
     val note by viewModel.note.collectAsStateWithLifecycle()
@@ -198,6 +200,41 @@ fun NoteDetailScreen(
                             }
                         }
                     }
+                }
+
+                // Notebook entry point — turns this note into the cover of a multi-page
+                // notebook, or opens the existing notebook for editing.
+                Spacer(Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .clickable(onClick = onOpenNotebook)
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            if (current.isNotebook) "Open notebook designer" else "Make this a notebook cover",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            if (current.isNotebookCompleted)
+                                "Marked complete · tap to re-export"
+                            else
+                                "Design a cover + back page, attach other notes as pages, export as PDF",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        Icons.Rounded.PictureAsPdf,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
 
                 // Attachments — images, audio (playable), and location pins

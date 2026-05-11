@@ -49,4 +49,13 @@ interface NoteDao {
 
     @Query("SELECT COUNT(*) FROM notes")
     suspend fun getNoteCount(): Int
+
+    @Query("SELECT * FROM notes WHERE isNotebook = 1 ORDER BY timestamp DESC")
+    fun observeNotebooks(): Flow<List<Note>>
+
+    @Query("SELECT * FROM notes WHERE notebookId = :coverId ORDER BY timestamp ASC")
+    suspend fun getNotebookPages(coverId: Long): List<Note>
+
+    @Query("SELECT * FROM notes WHERE notebookId = :coverId ORDER BY timestamp ASC")
+    fun observeNotebookPages(coverId: Long): Flow<List<Note>>
 }
