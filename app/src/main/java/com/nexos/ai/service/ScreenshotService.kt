@@ -120,7 +120,7 @@ class ScreenshotService : Service() {
                 }
                 backgroundHandler?.postDelayed(timeoutRunnable, CAPTURE_TIMEOUT_MS)
 
-                imageReader!!.setOnImageAvailableListener({ reader ->
+                imageReader.setOnImageAvailableListener({ reader ->
                     var image: Image? = null
                     try {
                         image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener

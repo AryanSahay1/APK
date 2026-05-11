@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.StickyNote2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -100,7 +100,7 @@ private fun SourceBadge(source: SourceType) {
     val (icon: ImageVector, label: String) = when (source) {
         SourceType.Screenshot -> Icons.Outlined.Image to "SCREEN"
         SourceType.Voice -> Icons.Outlined.Mic to "VOICE"
-        SourceType.Manual -> Icons.Outlined.StickyNote2 to "NOTE"
+        SourceType.Manual -> Icons.AutoMirrored.Outlined.StickyNote2 to "NOTE"
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(

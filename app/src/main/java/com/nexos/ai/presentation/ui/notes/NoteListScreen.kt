@@ -70,7 +70,7 @@ fun NoteListScreen(
     onNoteClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
     onNewNoteClick: () -> Unit,
-    onRequestScreenCapturePermission: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onRequestScreenCapturePermission: () -> Unit = {},
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current

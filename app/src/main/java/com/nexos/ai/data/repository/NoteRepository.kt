@@ -4,7 +4,6 @@ import com.nexos.ai.data.local.dao.NoteDao
 import com.nexos.ai.data.mapper.toDomain
 import com.nexos.ai.data.mapper.toEntity
 import com.nexos.ai.domain.model.Note
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,8 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class NoteRepository @Inject constructor(
-    private val noteDao: NoteDao,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val noteDao: NoteDao
 ) {
     val allNotes: Flow<List<Note>> = noteDao.getAllNotes().map { rows -> rows.map { it.toDomain() } }
 
@@ -32,21 +30,21 @@ class NoteRepository @Inject constructor(
     fun recentNotes(limit: Int): Flow<List<Note>> =
         noteDao.getRecentNotes(limit).map { rows -> rows.map { it.toDomain() } }
 
-    suspend fun insertNote(note: Note): Long = withContext(ioDispatcher) {
+    suspend fun insertNote(note: Note): Long = withContext(Dispatchers.IO) {
         noteDao.insert(note.toEntity())
     }
 
-    suspend fun updateNote(note: Note) = withContext(ioDispatcher) {
+    suspend fun updateNote(note: Note) = withContext(Dispatchers.IO) {
         noteDao.update(note.toEntity())
     }
 
-    suspend fun deleteNote(id: Long) = withContext(ioDispatcher) {
+    suspend fun deleteNote(id: Long) = withContext(Dispatchers.IO) {
         noteDao.deleteById(id)
     }
 
-    suspend fun getNote(id: Long): Note? = withContext(ioDispatcher) {
+    suspend fun getNote(id: Long): Note? = withContext(Dispatchers.IO) {
         noteDao.getNoteById(id)?.toDomain()
     }
 
-    suspend fun count(): Int = withContext(ioDispatcher) { noteDao.getNoteCount() }
+    suspend fun count(): Int = withContext(Dispatchers.IO) { noteDao.getNoteCount() }
 }

@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
@@ -40,11 +40,13 @@ import com.nexos.ai.util.toRelativeTimeString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
-    noteId: Long,
+    @Suppress("UNUSED_PARAMETER") noteId: Long,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
+    // noteId is consumed by NoteDetailViewModel via SavedStateHandle; the
+    // explicit parameter is retained so the nav graph can type-check the route.
     val context = LocalContext.current
     val note by viewModel.note.collectAsStateWithLifecycle()
 
@@ -61,7 +63,7 @@ fun NoteDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back), tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {

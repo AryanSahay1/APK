@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,10 +34,11 @@ import com.nexos.ai.presentation.viewmodel.EditNoteViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditNoteScreen(
-    noteId: Long,
+    @Suppress("UNUSED_PARAMETER") noteId: Long,
     onBack: () -> Unit,
     viewModel: EditNoteViewModel = hiltViewModel()
 ) {
+    // noteId is consumed by EditNoteViewModel via SavedStateHandle.
     val form by viewModel.form.collectAsStateWithLifecycle()
     val title = if (viewModel.isNewNote)
         stringResource(R.string.screen_edit_note_title_new)
@@ -53,7 +54,7 @@ fun EditNoteScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back), tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {
