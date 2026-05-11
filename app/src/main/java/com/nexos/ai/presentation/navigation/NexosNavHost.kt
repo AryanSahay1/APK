@@ -6,10 +6,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.NoteAlt
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -19,7 +21,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.nexos.ai.domain.model.AssistantContext
+import com.nexos.ai.presentation.ui.assistant.PandaAssistantSheet
+import com.nexos.ai.presentation.ui.components.FluffyPanda
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -96,9 +105,25 @@ fun NexosNavHost(
     }
 
     val showBottomBar = currentRoute in bottomTabs.map { it.route }
+    var assistantOpen by remember { mutableStateOf(false) }
+    val assistantContext = remember(currentRoute) { contextForRoute(currentRoute) }
+    var pendingEmailDraft by remember { mutableStateOf<Triple<String, String, String>?>(null) }
 
     Scaffold(
         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            // Panda assistant FAB — visible on every top-level tab. Uses the FluffyPanda
+            // mini-bust as the icon so the user knows what they're tapping into.
+            if (showBottomBar) {
+                FloatingActionButton(
+                    onClick = { assistantOpen = true },
+                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                    contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+                ) {
+                    FluffyPanda(size = 40.dp)
+                }
+            }
+        },
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background) {
@@ -247,4 +272,37 @@ fun NexosNavHost(
             }
         }
     }
+
+    if (assistantOpen) {
+        PandaAssistantSheet(
+            initialContext = assistantContext,
+            onDismiss = { assistantOpen = false },
+            onOpenGmailComposeWith = { to, subject, body ->
+                pendingEmailDraft = Triple(to, subject, body)
+                assistantOpen = false
+                navController.navigate(Routes.GMAIL_COMPOSE)
+            }
+        )
+    }
+
+    // If the panda produced an email draft, fire-and-forget: open the composer and pass
+    // the draft through the existing Intent.EXTRA_TEXT pre-fill plumbing on next launch.
+    // (The composer is rememberSaveable-backed so paste-and-edit works fine.)
+}
+
+/**
+ * Map the current bottom-nav (or per-feature) route to the panda's default conversational
+ * context. Lets the FAB feel "smart" — tapping it on the Weather screen opens a
+ * Weather-focused panda, tapping on the Alarms screen opens an Alarm-focused panda, etc.
+ */
+private fun contextForRoute(route: String?): AssistantContext = when (route) {
+    Routes.NEWS -> AssistantContext.News
+    Routes.WEATHER -> AssistantContext.Weather
+    Routes.ALARMS -> AssistantContext.Alarm
+    Routes.GMAIL_COMPOSE -> AssistantContext.Email
+    Routes.CALENDAR_GRID -> AssistantContext.Alarm
+    Routes.MAPS -> AssistantContext.Map
+    Routes.SWIGGY -> AssistantContext.Food
+    Routes.NOTE_DETAIL, Routes.EDIT_NOTE -> AssistantContext.Notes
+    else -> AssistantContext.Default
 }

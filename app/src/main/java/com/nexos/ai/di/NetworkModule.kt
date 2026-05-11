@@ -2,6 +2,7 @@ package com.nexos.ai.di
 
 import com.nexos.ai.BuildConfig
 import com.nexos.ai.data.remote.api.GNewsApi
+import com.nexos.ai.data.remote.api.NominatimApi
 import com.nexos.ai.data.remote.api.OpenMeteoGeocodingApi
 import com.nexos.ai.data.remote.api.OpenWeatherApi
 import com.nexos.ai.data.remote.api.WeatherApi
@@ -101,6 +102,20 @@ object NetworkModule {
     @Singleton
     fun provideOpenWeatherApi(@javax.inject.Named("openweather") retrofit: Retrofit): OpenWeatherApi =
         retrofit.create(OpenWeatherApi::class.java)
+
+    @Provides
+    @Singleton
+    @javax.inject.Named("nominatim")
+    fun provideNominatimRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(NominatimApi.BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideNominatimApi(@javax.inject.Named("nominatim") retrofit: Retrofit): NominatimApi =
+        retrofit.create(NominatimApi::class.java)
 }
 
 /**
